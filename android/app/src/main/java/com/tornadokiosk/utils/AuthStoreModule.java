@@ -1,4 +1,4 @@
-package com.TornadoOrderPicker.utils;
+package com.tornadoorderpicker.utils;
 
 import android.content.Context;
 import android.content.pm.PackageManager;

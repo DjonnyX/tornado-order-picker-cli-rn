@@ -5,7 +5,7 @@
 Установка администратора устройства:
 
 ```
-adb shell dpm set-device-owner com.TornadoOrderPicker/.TornadoDeviceAdminReceiver
+adb shell dpm set-device-owner com.tornadoorderpicker/.TornadoDeviceAdminReceiver
 ```
 
 Обновление приложения:
@@ -17,7 +17,7 @@ adb install -r path/to/tornado-order-picker.apk
 Удаление администратора устройства:
 
 ```
-adb shell dpm remove-active-admin com.TornadoOrderPicker/.TornadoDeviceAdminReceiver
+adb shell dpm remove-active-admin com.tornadoorderpicker/.TornadoDeviceAdminReceiver
 ```
 
 source:
@@ -29,5 +29,5 @@ http://wenchaojiang.github.io/blog/realise-Android-kiosk-mode/
 
 ```
 adb shell
-am start -n com.TornadoOrderPicker/com.TornadoOrderPicker.MainActivity
+am start -n com.tornadoorderpicker/com.tornadoorderpicker.MainActivity
 ```

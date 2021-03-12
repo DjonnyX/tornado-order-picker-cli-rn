@@ -1,4 +1,4 @@
-package com.TornadoOrderPicker.utils;
+package com.tornadoorderpicker.utils;
 
 import android.util.Log;
 
