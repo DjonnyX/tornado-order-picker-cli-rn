@@ -27,7 +27,7 @@ const LoadingScreenContainer = React.memo(({ _progress, _loaded, navigation }: I
       navigation.dispatch(
         CommonActions.reset({
           routes: [
-            { name: MainNavigationScreenTypes.INTRO },
+            { name: MainNavigationScreenTypes.ORDERS },
           ],
         })
       );
@@ -49,7 +49,7 @@ const LoadingScreenContainer = React.memo(({ _progress, _loaded, navigation }: I
             ?
             `${_progress}%`
             :
-            "loading..."
+            "загрузка..."
         }
       </Text>
     </View>
