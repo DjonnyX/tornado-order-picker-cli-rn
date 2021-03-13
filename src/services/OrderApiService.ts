@@ -124,7 +124,7 @@ class OrderApiService implements IDataService {
     }
 
     getRefs(): Observable<Array<IRef>> {
-        Log.i("OrderApiService", "getOrders");
+        Log.i("OrderApiService", "getOrderRefs");
         return request(
             from(this.getAccessToken()).pipe(
                 switchMap(token => {
@@ -144,7 +144,7 @@ class OrderApiService implements IDataService {
         ).pipe(
             switchMap(res => parseResponse(res)),
             catchError(err => {
-                Log.i("OrderApiService", "> getOrders: " + err);
+                Log.i("OrderApiService", "> getOrderRefs: " + err);
                 return throwError(err);
             }),
             map(resData => resData.data)
