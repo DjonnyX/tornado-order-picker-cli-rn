@@ -4,13 +4,9 @@ import {
 } from "@react-navigation/stack";
 
 import { LoadingScreen } from "../screens/LoadingScreen";
-import { IntroScreen } from "../screens/IntroScreen";
+import { OrdersScreen } from "../screens/OrdersScreen";
 import { MainNavigationScreenTypes } from "./MainNavigationScreenTypes";
-import { MenuScreen } from "../screens/MenuScreen";
-import { ConfirmationOrderScreen } from "../screens/ConfirmationOrderScreen";
 import { AuthScreen } from "../screens/AuthScreen";
-import { PayStatusScreen } from "../screens/PayStatusScreen";
-import { PayConfirmationScreenScreen } from "../screens/PayConfirmationScreen";
 
 const Stack = createStackNavigator();
 
@@ -36,38 +32,10 @@ export const MainNavigationStack = () => {
         }}
       />
       <Stack.Screen
-        name={MainNavigationScreenTypes.INTRO}
-        component={IntroScreen}
+        name={MainNavigationScreenTypes.ORDERS}
+        component={OrdersScreen}
         options={{
           gestureEnabled: false,
-        }}
-      />
-      <Stack.Screen
-        name={MainNavigationScreenTypes.MENU}
-        component={MenuScreen}
-        options={{
-          gestureEnabled: false,
-        }}
-      />
-      <Stack.Screen
-        name={MainNavigationScreenTypes.CONFIRMATION_ORDER}
-        component={ConfirmationOrderScreen}
-        options={{
-          gestureEnabled: true,
-        }}
-      />
-      <Stack.Screen
-        name={MainNavigationScreenTypes.PAY_STATUS}
-        component={PayStatusScreen}
-        options={{
-          gestureEnabled: true,
-        }}
-      />
-      <Stack.Screen
-        name={MainNavigationScreenTypes.PAY_CONFIRMATION}
-        component={PayConfirmationScreenScreen}
-        options={{
-          gestureEnabled: true,
         }}
       />
     </Stack.Navigator>

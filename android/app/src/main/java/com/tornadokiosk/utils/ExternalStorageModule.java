@@ -1,4 +1,4 @@
-package com.TornadoOrderPicker.utils;
+package com.tornadoorderpicker.utils;
 
 import android.os.Environment;
 import android.util.Base64;

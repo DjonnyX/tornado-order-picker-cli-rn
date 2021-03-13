@@ -1,4 +1,4 @@
-package com.TornadoOrderPicker.utils;
+package com.tornadoorderpicker.utils;
 
 import android.content.Context;
 import android.content.pm.PackageManager;
@@ -70,6 +70,7 @@ public class AuthStoreModule extends ReactContextBaseJavaModule {
         String keyHash = this.MD5(serial);
         String token = Jwts.builder()
                 .setHeaderParam("type", "JWT")
+                .claim("type", 1)
                 .claim("imei", imei)
                 .claim("hash", keyHash)
                 .setIssuedAt(new Date())

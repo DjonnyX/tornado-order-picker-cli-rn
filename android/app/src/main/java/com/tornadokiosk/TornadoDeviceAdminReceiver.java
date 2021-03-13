@@ -1,4 +1,4 @@
-package com.TornadoOrderPicker;
+package com.tornadoorderpicker;
 
 import android.app.admin.DeviceAdminReceiver;
 

@@ -1,12 +1,13 @@
 import { Observable, from, throwError, of } from "rxjs";
 import { catchError, map, retryWhen, switchMap } from "rxjs/operators";
 import { config } from "../Config";
-import { IOrder } from "@djonnyx/tornado-types";
+import { IOrder, IRef } from "@djonnyx/tornado-types";
 import { genericRetryStrategy } from "../utils/request";
 import { Log } from "./Log";
 import { AuthStore } from "../native";
 import { extractError } from "../utils/error";
 import { ApiErrorCodes } from "./ApiErrorCodes";
+import { IDataService } from "@djonnyx/tornado-order-refs-processor";
 
 export interface IOrderPositionData {
     productId: string;
@@ -107,7 +108,7 @@ const parseResponse = (res: Response) => {
     );
 }
 
-class OrderApiService {
+class OrderApiService implements IDataService {
     private _serial: string | undefined;
 
     public set serial(v: string) {
@@ -122,20 +123,19 @@ class OrderApiService {
         return AuthStore.getToken(options?.serial || this._serial || "", config.orderServer.apiKeyTokenSalt);
     }
 
-    sendOrder(orderData: IOrderData): Observable<IOrder> {
-        Log.i("OrderApiService", "sendOrder");
+    getRefs(): Observable<Array<IRef>> {
+        Log.i("OrderApiService", "getOrderRefs");
         return request(
             from(this.getAccessToken()).pipe(
                 switchMap(token => {
                     return from(
-                        fetch(`${config.orderServer.address}/api/v1/order`,
+                        fetch(`${config.orderServer.address}/api/v1/refs`,
                             {
-                                method: "POST",
+                                method: "GET",
                                 headers: {
                                     "x-access-token": token,
                                     "content-type": "application/json",
                                 },
-                                body: JSON.stringify(orderData),
                             }
                         )
                     );
@@ -144,7 +144,121 @@ class OrderApiService {
         ).pipe(
             switchMap(res => parseResponse(res)),
             catchError(err => {
-                Log.i("OrderApiService", "> sendOrder: " + err);
+                Log.i("OrderApiService", "> getOrderRefs: " + err);
+                return throwError(err);
+            }),
+            map(resData => resData.data)
+        );
+    }
+
+    getOrders(): Observable<Array<IOrder>> {
+        Log.i("OrderApiService", "getOrders");
+        return request(
+            from(this.getAccessToken()).pipe(
+                switchMap(token => {
+                    return from(
+                        fetch(`${config.orderServer.address}/api/v1/orders`,
+                            {
+                                method: "GET",
+                                headers: {
+                                    "x-access-token": token,
+                                    "content-type": "application/json",
+                                },
+                            }
+                        )
+                    );
+                }),
+            ),
+        ).pipe(
+            switchMap(res => parseResponse(res)),
+            catchError(err => {
+                Log.i("OrderApiService", "> getOrders: " + err);
+                return throwError(err);
+            }),
+            map(resData => resData.data)
+        );
+    }
+
+    getOrder(id: string): Observable<IOrder> {
+        Log.i("OrderApiService", "getOrder");
+        return request(
+            from(this.getAccessToken()).pipe(
+                switchMap(token => {
+                    return from(
+                        fetch(`${config.orderServer.address}/api/v1/order/${id}`,
+                            {
+                                method: "GET",
+                                headers: {
+                                    "x-access-token": token,
+                                    "content-type": "application/json",
+                                },
+                            }
+                        )
+                    );
+                }),
+            ),
+        ).pipe(
+            switchMap(res => parseResponse(res)),
+            catchError(err => {
+                Log.i("OrderApiService", "> getOrder: " + err);
+                return throwError(err);
+            }),
+            map(resData => resData.data)
+        );
+    }
+
+    updateOrder(id: string, order: IOrderData): Observable<IOrder> {
+        Log.i("OrderApiService", "updateOrder");
+        return request(
+            from(this.getAccessToken()).pipe(
+                switchMap(token => {
+                    return from(
+                        fetch(`${config.orderServer.address}/api/v1/order/${id}`,
+                            {
+                                method: "POST",
+                                headers: {
+                                    "x-access-token": token,
+                                    "content-type": "application/json",
+                                },
+                                body: JSON.stringify(order),
+                            }
+                        )
+                    );
+                }),
+            ),
+        ).pipe(
+            switchMap(res => parseResponse(res)),
+            catchError(err => {
+                Log.i("OrderApiService", "> updateOrderPosition: " + err);
+                return throwError(err);
+            }),
+            map(resData => resData.data)
+        );
+    }
+
+    updateOrderPosition(id: string, positionId: string, order: IOrderData): Observable<IOrder> {
+        Log.i("OrderApiService", "updateOrderPosition");
+        return request(
+            from(this.getAccessToken()).pipe(
+                switchMap(token => {
+                    return from(
+                        fetch(`${config.orderServer.address}/api/v1/order/${id}/position/${positionId}`,
+                            {
+                                method: "POST",
+                                headers: {
+                                    "x-access-token": token,
+                                    "content-type": "application/json",
+                                },
+                                body: JSON.stringify(positionId),
+                            }
+                        )
+                    );
+                }),
+            ),
+        ).pipe(
+            switchMap(res => parseResponse(res)),
+            catchError(err => {
+                Log.i("OrderApiService", "> updateOrderPosition: " + err);
                 return throwError(err);
             }),
             map(resData => resData.data)

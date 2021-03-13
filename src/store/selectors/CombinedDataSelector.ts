@@ -9,7 +9,7 @@ export namespace CombinedDataSelectors {
     });
 
     export const selectLoaded = createSelector(getCombinedData, (state) => {
-        return !!state?.data;
+        return !!state?.orderData;
     });
 
     export const selectDefaultLanguageCode = createSelector(getCombinedData, (state) => {
@@ -42,5 +42,9 @@ export namespace CombinedDataSelectors {
 
     export const selectBusinessPeriods = createSelector(getCombinedData, (state) => {
         return state?.data?.refs.__raw.businessPeriods;
+    });
+
+    export const selectOrders = createSelector(getCombinedData, (state) => {
+        return state?.orderData?.refs.orders;
     });
 }

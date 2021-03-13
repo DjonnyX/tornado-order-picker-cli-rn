@@ -2,12 +2,13 @@ import React, { Component, Dispatch } from "react";
 import { connect } from "react-redux";
 import { BehaviorSubject, from, forkJoin, of, Subject } from "rxjs";
 import { take, takeUntil, filter } from "rxjs/operators";
-import { IAsset, ICompiledData, IRefs } from "@djonnyx/tornado-types";
+import { IAsset, ICompiledData, ICompiledOrderData, ICompiledOrderType, ICompiledProduct, ICurrency, IRefs } from "@djonnyx/tornado-types";
 import { AssetsStore, IAssetsStoreResult } from "@djonnyx/tornado-assets-store";
-import { DataCombiner } from "@djonnyx/tornado-refs-processor";
+import { DataCombiner as MenuDataCombiner } from "@djonnyx/tornado-refs-processor";
+import { DataCombiner as OrderDataCombiner } from "@djonnyx/tornado-order-refs-processor";
 import { ExternalStorage } from "../native";
 import { config } from "../Config";
-import { assetsService, refApiService } from "../services";
+import { assetsService, orderApiService, refApiService } from "../services";
 import { IAppState } from "../store/state";
 import { CombinedDataActions, CapabilitiesActions } from "../store/actions";
 import { IProgress } from "@djonnyx/tornado-refs-processor/dist/DataCombiner";
@@ -16,7 +17,8 @@ import { MainNavigationScreenTypes } from "../components/navigation";
 
 interface IDataCollectorServiceProps {
     // store
-    _onChange: (data: ICompiledData) => void;
+    _onChange: (data: ICompiledOrderData) => void;
+    _onChangeMenu: (data: ICompiledData) => void;
     _onProgress: (progress: IProgress) => void;
 
     // self
@@ -35,7 +37,9 @@ class DataCollectorServiceContainer extends Component<IDataCollectorServiceProps
 
     private _assetsStore: AssetsStore | null = null;
 
-    private _dataCombiner: DataCombiner | null = null;
+    private _menuDataCombiner: MenuDataCombiner | null = null;
+
+    private _orderDataCombiner: OrderDataCombiner | null = null;
 
     private _savedData: IRefs | undefined;
 
@@ -43,6 +47,8 @@ class DataCollectorServiceContainer extends Component<IDataCollectorServiceProps
 
     private _serialNumber$ = new BehaviorSubject<string | undefined>(undefined);
     public readonly serialNumber$ = this._serialNumber$.asObservable();
+
+    private _menuRefs: ICompiledData | null = null;
 
     constructor(props: IDataCollectorServiceProps) {
         super(props);
@@ -64,7 +70,7 @@ class DataCollectorServiceContainer extends Component<IDataCollectorServiceProps
         }
 
         const storePath = `${userDataPath}/assets`;
-        
+
         try {
             if (!await assetsService.exists(storePath)) {
                 await assetsService.mkdir(storePath);
@@ -84,9 +90,40 @@ class DataCollectorServiceContainer extends Component<IDataCollectorServiceProps
             maxThreads: 1,
         });
 
-        this._dataCombiner = new DataCombiner({
+        this._orderDataCombiner = new OrderDataCombiner({
+            getRefs: () => ({
+                products: this._menuRefs?.refs.products as Array<ICompiledProduct>,
+                orderTypes: this._menuRefs?.refs.orderTypes as Array<ICompiledOrderType>,
+                currencies: this._menuRefs?.refs.__raw.currencies as Array<ICurrency>,
+            }),
+            dataService: orderApiService,
+            updateTimeout: config.refServer.updateTimeout,
+        });
+
+        this._orderDataCombiner.onChange.pipe(
+            takeUntil(this._unsubscribe$ as any),
+            filter(data => !!data),
+        ).subscribe(
+            data => {
+                this.props._onChange(data);
+            }
+        );
+
+        this._orderDataCombiner.onProgress.pipe(
+            takeUntil(this._unsubscribe$ as any),
+        ).subscribe(
+            progress => {
+                this.props._onProgress(progress);
+            },
+        );
+
+        this._menuDataCombiner = new MenuDataCombiner({
             assetsTransformer: (assets: Array<IAsset>) => {
-                return this._assetsStore?.setManifest(assets) || {
+                /*return this._assetsStore?.setManifest(assets) || {
+                    onComplete: of(assets),
+                    onProgress: of({ total: 0, current: 0 }),
+                } as IAssetsStoreResult;*/
+                return {
                     onComplete: of(assets),
                     onProgress: of({ total: 0, current: 0 }),
                 } as IAssetsStoreResult;
@@ -95,17 +132,44 @@ class DataCollectorServiceContainer extends Component<IDataCollectorServiceProps
             updateTimeout: config.refServer.updateTimeout,
         });
 
-        this._dataCombiner.onChange.pipe(
+        this._menuDataCombiner.onChange.pipe(
             takeUntil(this._unsubscribe$ as any),
             filter(data => !!data),
         ).subscribe(
             data => {
                 assetsService.writeFile(`${storePath}/${COMPILED_DATA_FILE_NAME}`, data.refs.__raw);
+
+                let isNeedLoadOrderRefs = false;
+                if (!this._menuRefs) {
+                    isNeedLoadOrderRefs = true;
+                }
+
+                this._menuRefs = data;
+
+                if (!!this._orderDataCombiner) {
+                    if (isNeedLoadOrderRefs) {
+                        this._orderDataCombiner.init();
+                    } else {
+                        this._orderDataCombiner.dependenciesRefs = data;
+                    }
+                }
+
+                this.props._onChangeMenu(data);
+            },
+        );
+
+        this._menuDataCombiner.onChange.pipe(
+            takeUntil(this._unsubscribe$ as any),
+            filter(data => !!data),
+        ).subscribe(
+            data => {
+                assetsService.writeFile(`${storePath}/${COMPILED_DATA_FILE_NAME}`, data.refs.__raw);
+                this._menuRefs = data;
                 this.props._onChange(data);
             },
         );
 
-        this._dataCombiner.onProgress.pipe(
+        this._menuDataCombiner.onProgress.pipe(
             takeUntil(this._unsubscribe$ as any),
         ).subscribe(
             progress => {
@@ -137,7 +201,7 @@ class DataCollectorServiceContainer extends Component<IDataCollectorServiceProps
             take(1),
             takeUntil(this._unsubscribe$ as any),
         ).subscribe(() => {
-            this._dataCombiner?.init(this.props._storeId as string, this._savedData as any);
+            this._menuDataCombiner?.init(this.props._storeId as string, this._savedData as any);
         });
     }
 
@@ -155,9 +219,9 @@ class DataCollectorServiceContainer extends Component<IDataCollectorServiceProps
     }
 
     componentWillUnmount() {
-        if (!!this._dataCombiner) {
-            this._dataCombiner.dispose();
-            this._dataCombiner = null;
+        if (!!this._menuDataCombiner) {
+            this._menuDataCombiner.dispose();
+            this._menuDataCombiner = null;
         }
 
         if (!!this._assetsStore) {
@@ -188,10 +252,13 @@ const mapStateToProps = (state: IAppState) => {
 
 const mapDispatchToProps = (dispatch: Dispatch<any>) => {
     return {
-        _onChange: (data: ICompiledData) => {
+        _onChangeMenu: (data: ICompiledData) => {
             dispatch(CombinedDataActions.setData(data));
             dispatch(CapabilitiesActions.setLanguage(data.refs.defaultLanguage));
             dispatch(CapabilitiesActions.setOrderType(data.refs.defaultOrderType));
+        },
+        _onChange: (data: ICompiledOrderData) => {
+            dispatch(CombinedDataActions.setOrdersData(data));
         },
         _onProgress: (progress: IProgress) => {
             dispatch(CombinedDataActions.setProgress(progress));

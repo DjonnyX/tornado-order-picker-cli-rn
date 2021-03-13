@@ -1,4 +1,4 @@
-package com.TornadoOrderPicker.utils;
+package com.tornadoorderpicker.utils;
 
 import com.facebook.react.ReactPackage;
 import com.facebook.react.bridge.NativeModule;

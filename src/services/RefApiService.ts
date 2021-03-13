@@ -1,7 +1,10 @@
 import { Observable, from, throwError, of } from "rxjs";
 import { catchError, map, retry, retryWhen, switchMap } from "rxjs/operators";
 import { config } from "../Config";
-import { IRef, INode, ISelector, IProduct, ITag, IAsset, ILanguage, ITranslation, IBusinessPeriod, IOrderType, ICurrency, IAd, IStore, ITerminal, TerminalTypes, ILicense } from "@djonnyx/tornado-types";
+import {
+    IRef, INode, ISelector, IProduct, ITag, IAsset, ILanguage, ITranslation, IBusinessPeriod, IOrderType,
+    ICurrency, IAd, IStore, ITerminal, TerminalTypes, ILicense
+} from "@djonnyx/tornado-types";
 import { genericRetryStrategy } from "../utils/request";
 import { Log } from "./Log";
 import { AuthStore } from "../native";
@@ -146,7 +149,7 @@ class RefApiService {
                                     "content-type": "application/json",
                                 },
                                 body: JSON.stringify({
-                                    type: TerminalTypes.KIOSK,
+                                    type: TerminalTypes.ORDER_PICKER,
                                 }),
                             }
                         )

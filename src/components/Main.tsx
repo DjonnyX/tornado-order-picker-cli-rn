@@ -4,7 +4,7 @@ import { connect } from "react-redux";
 import { CapabilitiesActions } from "../store/actions";
 import {
     AlertService, AuthService, DataCollectorService, NavigationService,
-    OrderService, SnackService, UserIdleService
+    OrderService, SnackService
 } from "../core";
 import { NavigationContainer, NavigationContainerRef } from "@react-navigation/native";
 import { MainNavigationScreenTypes, MainNavigationStack } from "./navigation";
@@ -41,16 +41,14 @@ const MainContainer = React.memo(({ _setCurrentScreen }: IMainProps) => {
             <AlertService />
 
             {/** components */}
-            <UserIdleService>
-                <StatusBar hidden={true} />
-                <NavigationContainer ref={navRef as any} onStateChange={(s) => {
-                    if (_setCurrentScreen !== undefined) {
-                        _setCurrentScreen(s?.routes[s.index].name as MainNavigationScreenTypes);
-                    }
-                }}>
-                    <MainNavigationStack />
-                </NavigationContainer>
-            </UserIdleService>
+            <StatusBar hidden={true} />
+            <NavigationContainer ref={navRef as any} onStateChange={(s) => {
+                if (_setCurrentScreen !== undefined) {
+                    _setCurrentScreen(s?.routes[s.index].name as MainNavigationScreenTypes);
+                }
+            }}>
+                <MainNavigationStack />
+            </NavigationContainer>
             {/** snack */}
             <SnackService />
         </>
