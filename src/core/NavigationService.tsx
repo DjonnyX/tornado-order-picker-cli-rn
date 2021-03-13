@@ -1,10 +1,8 @@
 import React, { Dispatch, useEffect } from "react";
 import { connect } from "react-redux";
-import { ICompiledLanguage, ICompiledOrderType } from "@djonnyx/tornado-types";
 import { IAppState } from "../store/state";
-import { CapabilitiesSelectors, CombinedDataSelectors, MyOrderSelectors } from "../store/selectors";
+import { CapabilitiesSelectors } from "../store/selectors";
 import { MainNavigationScreenTypes } from "../components/navigation";
-import { CapabilitiesActions, MyOrderActions, NotificationActions } from "../store/actions";
 
 interface INavigationServiceProps {
     // store

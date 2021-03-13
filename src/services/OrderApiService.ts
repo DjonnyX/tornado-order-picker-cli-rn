@@ -1,12 +1,13 @@
 import { Observable, from, throwError, of } from "rxjs";
 import { catchError, map, retryWhen, switchMap } from "rxjs/operators";
 import { config } from "../Config";
-import { IOrder } from "@djonnyx/tornado-types";
+import { IOrder, IRef } from "@djonnyx/tornado-types";
 import { genericRetryStrategy } from "../utils/request";
 import { Log } from "./Log";
 import { AuthStore } from "../native";
 import { extractError } from "../utils/error";
 import { ApiErrorCodes } from "./ApiErrorCodes";
+import { IDataService } from "@djonnyx/tornado-order-refs-processor";
 
 export interface IOrderPositionData {
     productId: string;
@@ -107,7 +108,7 @@ const parseResponse = (res: Response) => {
     );
 }
 
-class OrderApiService {
+class OrderApiService implements IDataService {
     private _serial: string | undefined;
 
     public set serial(v: string) {
@@ -122,7 +123,35 @@ class OrderApiService {
         return AuthStore.getToken(options?.serial || this._serial || "", config.orderServer.apiKeyTokenSalt);
     }
 
-    getOrders(): Observable<IOrder> {
+    getRefs(): Observable<Array<IRef>> {
+        Log.i("OrderApiService", "getOrders");
+        return request(
+            from(this.getAccessToken()).pipe(
+                switchMap(token => {
+                    return from(
+                        fetch(`${config.orderServer.address}/api/v1/refs`,
+                            {
+                                method: "GET",
+                                headers: {
+                                    "x-access-token": token,
+                                    "content-type": "application/json",
+                                },
+                            }
+                        )
+                    );
+                }),
+            ),
+        ).pipe(
+            switchMap(res => parseResponse(res)),
+            catchError(err => {
+                Log.i("OrderApiService", "> getOrders: " + err);
+                return throwError(err);
+            }),
+            map(resData => resData.data)
+        );
+    }
+
+    getOrders(): Observable<Array<IOrder>> {
         Log.i("OrderApiService", "getOrders");
         return request(
             from(this.getAccessToken()).pipe(

@@ -4,7 +4,7 @@ import { connect } from "react-redux";
 import { CapabilitiesActions } from "../store/actions";
 import {
     AlertService, AuthService, DataCollectorService, NavigationService,
-    OrderService, SnackService, UserIdleService
+    OrderService, SnackService
 } from "../core";
 import { NavigationContainer, NavigationContainerRef } from "@react-navigation/native";
 import { MainNavigationScreenTypes, MainNavigationStack } from "./navigation";

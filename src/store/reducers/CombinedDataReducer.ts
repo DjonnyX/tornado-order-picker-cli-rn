@@ -4,6 +4,7 @@ import { ICombinedDataState } from "../state";
 
 const initialState: ICombinedDataState = {
     data: null,
+    orderData: null,
     progress: {
         total: 0,
         current: 0,
@@ -19,6 +20,11 @@ const combinedDataReducer: Reducer<ICombinedDataState, TCombinedDataActions> = (
             return {
                 ...state,
                 data: action.data,
+            };
+        case CombinedDataActionTypes.SET_ORDER_DATA:
+            return {
+                ...state,
+                orderData: action.data,
             };
         case CombinedDataActionTypes.SET_PROGRESS:
             return {
