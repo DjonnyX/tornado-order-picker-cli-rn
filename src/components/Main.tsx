@@ -9,7 +9,6 @@ import {
 import { NavigationContainer, NavigationContainerRef } from "@react-navigation/native";
 import { MainNavigationScreenTypes, MainNavigationStack } from "./navigation";
 import { IAppState } from "../store/state";
-import { MenuService } from "../core/MenuService";
 
 interface IMainProps {
     // store props
@@ -34,7 +33,6 @@ const MainContainer = React.memo(({ _setCurrentScreen }: IMainProps) => {
         <>
             {/** services */}
             <NavigationService onNavigate={onNavigate} />
-            <MenuService />
             <OrderService />
             <AuthService />
             <DataCollectorService />
