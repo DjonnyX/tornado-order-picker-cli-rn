@@ -14,8 +14,6 @@ interface IGridListProps<T = any> {
     keyExtractor: (item: T, index: number) => number;
 }
 
-const FPS = 1000 / 60;
-
 export const GridList = React.memo(({ data, renderItem, style, keyExtractor, spacing = 0, padding = 0,
     animationSkipFrames = 0, disbleStartAnimation = false, itemDimension }: IGridListProps) => {
     const [isInit, _setIsInit] = useState(false);
@@ -37,7 +35,7 @@ export const GridList = React.memo(({ data, renderItem, style, keyExtractor, spa
         const { x, y, width, height } = event.nativeEvent.layout;
         const numColumns = Math.floor(width / itemDimension);
         const gap = spacing * 0.5;
-        const actualItemWidth = (width - padding * 2) / numColumns - (numColumns) * gap
+        const actualItemWidth = Math.floor(width - padding * 2 - numColumns * gap * 2) / numColumns
         if (cellAnimation) {
             cellAnimation.stop();
         }
