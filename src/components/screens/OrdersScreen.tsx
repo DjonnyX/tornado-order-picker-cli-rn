@@ -60,7 +60,7 @@ const getNextOrderPositionStatus = (status: OrderPositionStatuses): OrderPositio
 
 const OrdersScreenContainer = React.memo(({ _orders, _language, _currency, navigation,
     _onSetOrdersVersion, _onSetOrderStatus, _onSetOrderPositionStatus, _alertOpen }: IOrdersProps) => {
-    const onSelectOrderHandler = useCallback((order: ICompiledOrder) => {
+    const onSelectOrderHandler = useCallback((order: ICompiledOrder, isAnyStatus: boolean) => {
         const unsubscribe$ = new Subject<void>();
         const status = getNextOrderStatus(order.status);
         // if (status !== order.status) {
@@ -81,7 +81,7 @@ const OrdersScreenContainer = React.memo(({ _orders, _language, _currency, navig
                             {
                                 title: "Повторить",
                                 action: () => {
-                                    onSelectOrderHandler(order);
+                                    onSelectOrderHandler(order, isAnyStatus);
                                 }
                             }
                         ]
@@ -96,8 +96,9 @@ const OrdersScreenContainer = React.memo(({ _orders, _language, _currency, navig
         }
     }, []);
 
-    const onSelectOrderPositionHandler = useCallback((order: ICompiledOrder, position: ICompiledOrderPosition) => {
+    const onSelectOrderPositionHandler = useCallback((order: ICompiledOrder, position: ICompiledOrderPosition, isAnyStatus: boolean) => {
         const unsubscribe$ = new Subject<void>();
+
         const status = getNextOrderPositionStatus(position.status);
         if (status !== position.status) {
             orderApiService.changeOrderPositionStatus(order.id as string, position.id as string, status).pipe(
@@ -117,7 +118,7 @@ const OrdersScreenContainer = React.memo(({ _orders, _language, _currency, navig
                             {
                                 title: "Повторить",
                                 action: () => {
-                                    onSelectOrderPositionHandler(order, position);
+                                    onSelectOrderPositionHandler(order, position, isAnyStatus);
                                 }
                             }
                         ]

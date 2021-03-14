@@ -8,8 +8,8 @@ interface IOrderListItemProps {
     order: ICompiledOrder;
     currency: ICurrency;
     language: ICompiledLanguage;
-    onSelectOrder: (order: ICompiledOrder) => void;
-    onSelectOrderPosition: (order: ICompiledOrder, postion: ICompiledOrderPosition) => void;
+    onSelectOrder: (order: ICompiledOrder, isAnyStatus?: boolean) => void;
+    onSelectOrderPosition: (order: ICompiledOrder, postion: ICompiledOrderPosition, isAnyStatus: boolean) => void;
 }
 
 const getColorByStatus = (status: OrderStatuses): string => {
@@ -30,17 +30,22 @@ const getColorByStatus = (status: OrderStatuses): string => {
 export const OrderListItem = React.memo(({ currency, language, order,
     onSelectOrder, onSelectOrderPosition }: IOrderListItemProps) => {
 
-    const onSelectOrderHandler = useCallback((e: GestureResponderEvent) => {
+    const onPressHandler = useCallback((e: GestureResponderEvent) => {
         onSelectOrder(order);
     }, [order]);
 
-    const onPositionSelectHandler = useCallback((position: ICompiledOrderPosition) => {
-        onSelectOrderPosition(order, position);
+    const onLongPressHandler = useCallback((e: GestureResponderEvent) => {
+        onSelectOrder(order, true);
+    }, [order]);
+
+    const onPositionSelectHandler = useCallback((position: ICompiledOrderPosition, isAnyStatus: boolean = false) => {
+        onSelectOrderPosition(order, position, isAnyStatus);
     }, [order]);
 
     return (
         <View style={{ flex: 1, backgroundColor: getColorByStatus(order.status), borderRadius: 16 }}>
-            <TouchableOpacity style={{ alignItems: "center", flex: 1, padding: 22 }} onPress={onSelectOrderHandler}>
+            <TouchableOpacity style={{ alignItems: "center", flex: 1, padding: 22 }} onPress={onPressHandler}
+                onLongPress={onLongPressHandler}>
                 <Text textBreakStrategy="simple" numberOfLines={2} ellipsizeMode="tail" style={{
                     textAlign: "center", fontSize: 16, fontWeight: "bold",
                     color: "#ffffff", textTransform: "uppercase",
