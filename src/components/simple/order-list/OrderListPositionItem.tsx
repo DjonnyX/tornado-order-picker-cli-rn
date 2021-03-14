@@ -2,29 +2,43 @@ import React, { useCallback } from "react";
 import { View, Text, TouchableOpacity, GestureResponderEvent } from "react-native";
 import { ICurrency, ICompiledLanguage, ICompiledOrderPosition } from "@djonnyx/tornado-types";
 import { theme } from "../../../theme";
+import { OrderPositionStatuses } from "@djonnyx/tornado-types";
 
 interface IOrderListPositionItemProps {
+    onSelect: (postion: ICompiledOrderPosition) => void;
     position: ICompiledOrderPosition;
     currency: ICurrency;
     language: ICompiledLanguage;
 }
 
-export const OrderListPositionItem = React.memo(({ currency, language, position }: IOrderListPositionItemProps) => {
+const getColorByStatus = (status: OrderPositionStatuses): string => {
+    switch (status) {
+        case OrderPositionStatuses.NEW: {
+            return "gray";
+        }
+        case OrderPositionStatuses.IN_PROCESS: {
+            return "yellow";
+        }
+        case OrderPositionStatuses.COMPLETE: {
+            return "green";
+        }
+    }
+    return "1e1e1e";
+}
+
+export const OrderListPositionItem = React.memo(({ currency, language, position, onSelect }: IOrderListPositionItemProps) => {
 
     const pressHandler = useCallback((e: GestureResponderEvent) => {
+        onSelect(position);
+    }, [position]);
 
-    }, []);
-
-    /*const currentContent = order.positions.contents[language?.code];
-    const currentAdAsset = currentContent?.resources?.icon;
-
-    const tags = !!position.__product__?.tags && position.__product__?.tags?.length > 0
-        ? position.__product__?.tags
-        : undefined;*/
+    const onSelectHandler = useCallback((position: ICompiledOrderPosition) => {
+        onSelect(position);
+    }, [position]);
 
     return (
         <>
-            <View style={{ flex: 1, backgroundColor: "gray", borderRadius: 16, marginBottom: 2 }}>
+            <View style={{ flex: 1, backgroundColor: getColorByStatus(position.status), borderRadius: 16, marginBottom: 2 }}>
                 <TouchableOpacity style={{ flex: 1, padding: 22 }} onPress={pressHandler}>
                     <View style={{ width: "100%", flexDirection: "row", alignItems: "center", justifyAlign: "space-around" }}>
                         <Text style={{
@@ -47,8 +61,8 @@ export const OrderListPositionItem = React.memo(({ currency, language, position 
 
             <View style={{ width: "100%" }}>
                 {
-                    position.children.map(p =>
-                        <OrderListPositionItem key={p.id} position={p} language={language} currency={currency} />
+                    position.children.filter(p => !!p.product).map(p =>
+                        <OrderListPositionItem key={p.id} position={p} language={language} currency={currency} onSelect={onSelectHandler} />
                     )
                 }
             </View>

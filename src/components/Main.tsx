@@ -3,8 +3,7 @@ import { StatusBar } from "react-native";
 import { connect } from "react-redux";
 import { CapabilitiesActions } from "../store/actions";
 import {
-    AlertService, AuthService, DataCollectorService, NavigationService,
-    OrderService, SnackService
+    AlertService, AuthService, DataCollectorService, NavigationService, SnackService
 } from "../core";
 import { NavigationContainer, NavigationContainerRef } from "@react-navigation/native";
 import { MainNavigationScreenTypes, MainNavigationStack } from "./navigation";
@@ -33,7 +32,6 @@ const MainContainer = React.memo(({ _setCurrentScreen }: IMainProps) => {
         <>
             {/** services */}
             <NavigationService onNavigate={onNavigate} />
-            <OrderService />
             <AuthService />
             <DataCollectorService />
             <AlertService />

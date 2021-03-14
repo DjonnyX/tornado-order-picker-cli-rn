@@ -1,10 +1,7 @@
-import { ICompiledLanguage, ICompiledOrder, ICurrency } from "@djonnyx/tornado-types";
-import React from "react";
+import { ICompiledLanguage, ICompiledOrder, ICompiledOrderPosition, ICurrency } from "@djonnyx/tornado-types";
+import React, { useCallback } from "react";
 import { View, SafeAreaView, ScrollView } from "react-native";
-import LinearGradient from "react-native-linear-gradient";
-import { Icons, theme } from "../../../theme";
 import { GridList } from "../../layouts/GridList";
-import { ModifierListItem } from "./ModifierListItem";
 import { OrderListItem } from "./OrderListItem";
 
 const ITEM_WIDTH = 218;
@@ -13,19 +10,32 @@ interface IOrderListProps {
     language: ICompiledLanguage;
     orders: Array<ICompiledOrder>;
     currency: ICurrency;
+    onSelectOrder: (order: ICompiledOrder) => void;
+    onSelectOrderPosition: (order: ICompiledOrder, postion: ICompiledOrderPosition) => void;
 }
 
-export const OrderListContainer = React.memo(({ orders, currency, language }: IOrderListProps) => {
+export const OrderListContainer = React.memo(({ orders, currency, language,
+    onSelectOrder, onSelectOrderPosition }: IOrderListProps) => {
+
+    const onSelectOrderHandler = useCallback((order: ICompiledOrder) => {
+        onSelectOrder(order);
+    }, []);
+
+    const onSelectOrderPositionHandler = useCallback((order: ICompiledOrder, position: ICompiledOrderPosition) => {
+        onSelectOrderPosition(order, position);
+    }, []);
+
     return (
         <View style={{ width: "100%" }}>
             <SafeAreaView style={{
                 width: "100%",
             }}>
                 <ScrollView style={{ width: "100%" }} persistentScrollbar>
-                    <GridList style={{ width: "100%" }} disbleStartAnimation
+                    <GridList style={{ width: "100%" }}
                         padding={10} spacing={6} data={orders || []}
-                        itemDimension={ITEM_WIDTH} animationSkipFrames={10} renderItem={({ item }) => {
-                            return <OrderListItem key={item.id} order={item} currency={currency} language={language} />
+                        itemDimension={ITEM_WIDTH} renderItem={({ item }) => {
+                            return <OrderListItem key={item.id} order={item} currency={currency} language={language}
+                                onSelectOrder={onSelectOrderHandler} onSelectOrderPosition={onSelectOrderPositionHandler} />
                         }}
                         keyExtractor={(item, index) => item.id}>
                     </GridList>

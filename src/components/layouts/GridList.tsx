@@ -32,7 +32,7 @@ export const GridList = React.memo(({ data, renderItem, style, keyExtractor, spa
         >
             <View style={{ display: "flex", flexDirection: "row", flexWrap: "wrap" }}>
                 {
-                    data.map((item, index) =>
+                    !!data && data.map((item, index) =>
                         <View key={(keyExtractor(item, index))}
                             style={{ width: cellWidth, margin: gap, justifyContent: "center", overflow: "hidden" }}>
                             {

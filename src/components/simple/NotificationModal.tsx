@@ -12,7 +12,7 @@ export const NotificationModal = React.memo(({ children, visible }: INotificatio
     let positionAnimation: Animated.CompositeAnimation;
 
     // анимация скрытия
-    const sideMenuFadeOut = useCallback(() => {
+    const sideFadeOut = useCallback(() => {
         if (positionAnimation) {
             positionAnimation.stop();
         }
@@ -27,7 +27,7 @@ export const NotificationModal = React.memo(({ children, visible }: INotificatio
     }, []);
 
     // анимация отображения
-    const sideMenuFadeIn = useCallback(() => {
+    const sideFadeIn = useCallback(() => {
         if (positionAnimation) {
             positionAnimation.stop();
         }
@@ -42,9 +42,9 @@ export const NotificationModal = React.memo(({ children, visible }: INotificatio
     }, []);
 
     if (visible) {
-        sideMenuFadeIn();
+        sideFadeIn();
     } else {
-        sideMenuFadeOut();
+        sideFadeOut();
     }
 
     return (
