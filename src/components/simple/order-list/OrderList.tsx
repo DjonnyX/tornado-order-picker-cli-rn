@@ -10,19 +10,19 @@ interface IOrderListProps {
     language: ICompiledLanguage;
     orders: Array<ICompiledOrder>;
     currency: ICurrency;
-    onSelectOrder: (order: ICompiledOrder) => void;
-    onSelectOrderPosition: (order: ICompiledOrder, postion: ICompiledOrderPosition) => void;
+    onSelectOrder: (order: ICompiledOrder, isAnyStatus: boolean) => void;
+    onSelectOrderPosition: (order: ICompiledOrder, postion: ICompiledOrderPosition, isAnyStatus: boolean) => void;
 }
 
 export const OrderListContainer = React.memo(({ orders, currency, language,
     onSelectOrder, onSelectOrderPosition }: IOrderListProps) => {
 
-    const onSelectOrderHandler = useCallback((order: ICompiledOrder) => {
-        onSelectOrder(order);
+    const onSelectOrderHandler = useCallback((order: ICompiledOrder, isAnyStatus: boolean = false) => {
+        onSelectOrder(order, isAnyStatus);
     }, []);
 
-    const onSelectOrderPositionHandler = useCallback((order: ICompiledOrder, position: ICompiledOrderPosition) => {
-        onSelectOrderPosition(order, position);
+    const onSelectOrderPositionHandler = useCallback((order: ICompiledOrder, position: ICompiledOrderPosition, isAnyStatus: boolean) => {
+        onSelectOrderPosition(order, position, isAnyStatus);
     }, []);
 
     return (

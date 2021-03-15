@@ -289,7 +289,6 @@ const AuthScreenContainer = React.memo(({ _serialNumber, _setupStep, _terminalId
 
     const authHandler = (sn: string) => {
         setShowProgressBar(true);
-        console.warn(sn)
 
         const unsubscribe$ = new Subject<void>();
 
