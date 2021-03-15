@@ -1,12 +1,11 @@
 import { createStore, combineReducers } from "redux";
-import { combinedDataReducer, capabilitiesReducer, myOrderReducer, systemReducer, notificationReducer, menuReducer } from "./reducers";
+import { combinedDataReducer, capabilitiesReducer, ordersReducer, systemReducer, notificationReducer } from "./reducers";
 import { IAppState } from "./state";
 
 const reducers = combineReducers<IAppState>({
 	combinedData: combinedDataReducer,
 	capabilities: capabilitiesReducer,
-	myOrder: myOrderReducer,
-	menu: menuReducer,
+	orders: ordersReducer,
 	system: systemReducer,
 	notification: notificationReducer,
 });

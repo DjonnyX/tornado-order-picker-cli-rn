@@ -1,13 +1,13 @@
 import { Observable, from, throwError, of } from "rxjs";
 import { catchError, map, retryWhen, switchMap } from "rxjs/operators";
+import { IOrder, IRef, OrderPositionStatuses, OrderStatuses } from "@djonnyx/tornado-types";
+import { IDataService } from "@djonnyx/tornado-order-refs-processor";
 import { config } from "../Config";
-import { IOrder, IRef } from "@djonnyx/tornado-types";
 import { genericRetryStrategy } from "../utils/request";
 import { Log } from "./Log";
 import { AuthStore } from "../native";
 import { extractError } from "../utils/error";
 import { ApiErrorCodes } from "./ApiErrorCodes";
-import { IDataService } from "@djonnyx/tornado-order-refs-processor";
 
 export interface IOrderPositionData {
     productId: string;
@@ -16,14 +16,6 @@ export interface IOrderPositionData {
     discount: number;
     quantity: number;
     children: Array<IOrderPositionData>;
-}
-
-export interface IOrderData {
-    sum: number;
-    discount: number;
-    currencyId: string;
-    orderTypeId: string;
-    positions: Array<IOrderPositionData>;
 }
 
 interface IRequestOptions {
@@ -207,20 +199,25 @@ class OrderApiService implements IDataService {
         );
     }
 
-    updateOrder(id: string, order: IOrderData): Observable<IOrder> {
-        Log.i("OrderApiService", "updateOrder");
+    changeOrderStatus(id: string, status: OrderStatuses): Observable<{
+        meta: {
+            ref: IRef,
+        },
+        data: IOrder,
+    }> {
+        Log.i("OrderApiService", "changeOrderStatus");
         return request(
             from(this.getAccessToken()).pipe(
                 switchMap(token => {
                     return from(
                         fetch(`${config.orderServer.address}/api/v1/order/${id}`,
                             {
-                                method: "POST",
+                                method: "PUT",
                                 headers: {
                                     "x-access-token": token,
                                     "content-type": "application/json",
                                 },
-                                body: JSON.stringify(order),
+                                body: JSON.stringify({ status }),
                             }
                         )
                     );
@@ -229,27 +226,32 @@ class OrderApiService implements IDataService {
         ).pipe(
             switchMap(res => parseResponse(res)),
             catchError(err => {
-                Log.i("OrderApiService", "> updateOrderPosition: " + err);
+                Log.i("OrderApiService", "> changeOrderStatus: " + err);
                 return throwError(err);
             }),
-            map(resData => resData.data)
+            map(resData => resData)
         );
     }
 
-    updateOrderPosition(id: string, positionId: string, order: IOrderData): Observable<IOrder> {
-        Log.i("OrderApiService", "updateOrderPosition");
+    changeOrderPositionStatus(id: string, positionId: string, status: OrderPositionStatuses): Observable<{
+        meta: {
+            ref: IRef,
+        },
+        data: IOrder,
+    }> {
+        Log.i("OrderApiService", "changeOrderPositionStatus");
         return request(
             from(this.getAccessToken()).pipe(
                 switchMap(token => {
                     return from(
                         fetch(`${config.orderServer.address}/api/v1/order/${id}/position/${positionId}`,
                             {
-                                method: "POST",
+                                method: "PUT",
                                 headers: {
                                     "x-access-token": token,
                                     "content-type": "application/json",
                                 },
-                                body: JSON.stringify(positionId),
+                                body: JSON.stringify({ status }),
                             }
                         )
                     );
@@ -258,10 +260,10 @@ class OrderApiService implements IDataService {
         ).pipe(
             switchMap(res => parseResponse(res)),
             catchError(err => {
-                Log.i("OrderApiService", "> updateOrderPosition: " + err);
+                Log.i("OrderApiService", "> changeOrderPositionStatus: " + err);
                 return throwError(err);
             }),
-            map(resData => resData.data)
+            map(resData => resData)
         );
     }
 }

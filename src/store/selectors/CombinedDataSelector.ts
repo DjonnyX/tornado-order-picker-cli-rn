@@ -43,8 +43,4 @@ export namespace CombinedDataSelectors {
     export const selectBusinessPeriods = createSelector(getCombinedData, (state) => {
         return state?.data?.refs.__raw.businessPeriods;
     });
-
-    export const selectOrders = createSelector(getCombinedData, (state) => {
-        return state?.orderData?.refs.orders;
-    });
 }

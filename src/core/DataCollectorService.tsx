@@ -2,7 +2,10 @@ import React, { Component, Dispatch } from "react";
 import { connect } from "react-redux";
 import { BehaviorSubject, from, forkJoin, of, Subject } from "rxjs";
 import { take, takeUntil, filter } from "rxjs/operators";
-import { IAsset, ICompiledData, ICompiledOrderData, ICompiledOrderType, ICompiledProduct, ICurrency, IRefs } from "@djonnyx/tornado-types";
+import {
+    IAsset, ICompiledData, ICompiledOrderData, ICompiledOrderType, ICompiledProduct, ICurrency, IRefs,
+    RefTypes
+} from "@djonnyx/tornado-types";
 import { AssetsStore, IAssetsStoreResult } from "@djonnyx/tornado-assets-store";
 import { DataCombiner as MenuDataCombiner } from "@djonnyx/tornado-refs-processor";
 import { DataCombiner as OrderDataCombiner } from "@djonnyx/tornado-order-refs-processor";
@@ -10,20 +13,20 @@ import { ExternalStorage } from "../native";
 import { config } from "../Config";
 import { assetsService, orderApiService, refApiService } from "../services";
 import { IAppState } from "../store/state";
-import { CombinedDataActions, CapabilitiesActions } from "../store/actions";
+import { CombinedDataActions, CapabilitiesActions, OrdersActions } from "../store/actions";
 import { IProgress } from "@djonnyx/tornado-refs-processor/dist/DataCombiner";
-import { CapabilitiesSelectors, SystemSelectors } from "../store/selectors";
+import { CapabilitiesSelectors, OrdersSelectors, SystemSelectors } from "../store/selectors";
 import { MainNavigationScreenTypes } from "../components/navigation";
 
 interface IDataCollectorServiceProps {
     // store
-    _onChange: (data: ICompiledOrderData) => void;
+    _onChangeOrders: (data: ICompiledOrderData, version: number) => void;
     _onChangeMenu: (data: ICompiledData) => void;
     _onProgress: (progress: IProgress) => void;
 
     // self
+    _version?: number;
     _serialNumber?: string | undefined;
-    _terminalId?: string | undefined;
     _storeId?: string | undefined;
     _currentScreen?: string | undefined;
 }
@@ -47,6 +50,9 @@ class DataCollectorServiceContainer extends Component<IDataCollectorServiceProps
 
     private _serialNumber$ = new BehaviorSubject<string | undefined>(undefined);
     public readonly serialNumber$ = this._serialNumber$.asObservable();
+
+    private _version$ = new BehaviorSubject<number | undefined>(undefined);
+    public readonly version$ = this._version$.asObservable();
 
     private _menuRefs: ICompiledData | null = null;
 
@@ -105,7 +111,7 @@ class DataCollectorServiceContainer extends Component<IDataCollectorServiceProps
             filter(data => !!data),
         ).subscribe(
             data => {
-                this.props._onChange(data);
+                this.props._onChangeOrders(data, this._orderDataCombiner?.getRefVersion(RefTypes.ORDERS));
             }
         );
 
@@ -119,10 +125,6 @@ class DataCollectorServiceContainer extends Component<IDataCollectorServiceProps
 
         this._menuDataCombiner = new MenuDataCombiner({
             assetsTransformer: (assets: Array<IAsset>) => {
-                /*return this._assetsStore?.setManifest(assets) || {
-                    onComplete: of(assets),
-                    onProgress: of({ total: 0, current: 0 }),
-                } as IAssetsStoreResult;*/
                 return {
                     onComplete: of(assets),
                     onProgress: of({ total: 0, current: 0 }),
@@ -150,22 +152,15 @@ class DataCollectorServiceContainer extends Component<IDataCollectorServiceProps
                     if (isNeedLoadOrderRefs) {
                         this._orderDataCombiner.init();
                     } else {
-                        this._orderDataCombiner.dependenciesRefs = data;
+                        this._orderDataCombiner.dependenciesRefs = {
+                            products: data.refs?.products,
+                            orderTypes: data.refs?.orderTypes,
+                            currencies: data.refs?.__raw.currencies,
+                        };
                     }
                 }
 
                 this.props._onChangeMenu(data);
-            },
-        );
-
-        this._menuDataCombiner.onChange.pipe(
-            takeUntil(this._unsubscribe$ as any),
-            filter(data => !!data),
-        ).subscribe(
-            data => {
-                assetsService.writeFile(`${storePath}/${COMPILED_DATA_FILE_NAME}`, data.refs.__raw);
-                this._menuRefs = data;
-                this.props._onChange(data);
             },
         );
 
@@ -176,6 +171,15 @@ class DataCollectorServiceContainer extends Component<IDataCollectorServiceProps
                 this.props._onProgress(progress);
             },
         );
+
+        this._version$.pipe(
+            takeUntil(this._unsubscribe$ as any),
+        ).subscribe(
+            version => {
+                // чтобы не обновлять весь список, когда конкретный заказ был обновлен
+                this._orderDataCombiner?.setRefVersion(RefTypes.ORDERS, version);
+            }
+        )
     }
 
     load(): void {
@@ -208,6 +212,10 @@ class DataCollectorServiceContainer extends Component<IDataCollectorServiceProps
     shouldComponentUpdate(nextProps: Readonly<IDataCollectorServiceProps>, nextState: Readonly<IDataCollectorServiceState>, nextContext: any) {
         if (this.props._serialNumber !== nextProps._serialNumber) {
             this._serialNumber$.next(this.props._serialNumber);
+        }
+
+        if (this.props._version !== nextProps._version) {
+            this._version$.next(nextProps._version);
         }
 
         if (nextProps._currentScreen === MainNavigationScreenTypes.LOADING && !!nextProps._storeId) {
@@ -244,9 +252,9 @@ class DataCollectorServiceContainer extends Component<IDataCollectorServiceProps
 const mapStateToProps = (state: IAppState) => {
     return {
         _serialNumber: SystemSelectors.selectSerialNumber(state),
-        _terminalId: SystemSelectors.selectTerminalId(state),
         _storeId: SystemSelectors.selectStoreId(state),
         _currentScreen: CapabilitiesSelectors.selectCurrentScreen(state),
+        _version: OrdersSelectors.selectVersion(state),
     };
 };
 
@@ -257,8 +265,10 @@ const mapDispatchToProps = (dispatch: Dispatch<any>) => {
             dispatch(CapabilitiesActions.setLanguage(data.refs.defaultLanguage));
             dispatch(CapabilitiesActions.setOrderType(data.refs.defaultOrderType));
         },
-        _onChange: (data: ICompiledOrderData) => {
+        _onChangeOrders: (data: ICompiledOrderData, version: number) => {
             dispatch(CombinedDataActions.setOrdersData(data));
+            dispatch(OrdersActions.setCollection(data.refs?.orders));
+            dispatch(OrdersActions.setVersion(version));
         },
         _onProgress: (progress: IProgress) => {
             dispatch(CombinedDataActions.setProgress(progress));

@@ -1,5 +1,5 @@
-import React, { Dispatch, useCallback, useEffect } from "react";
-import { StackNavigationProp, StackScreenProps } from "@react-navigation/stack";
+import React, { Dispatch, useEffect } from "react";
+import { StackScreenProps } from "@react-navigation/stack";
 import { ProgressBar } from "@react-native-community/progress-bar-android";
 import { View, Text } from "react-native";
 import { MainNavigationScreenTypes } from "../navigation";
@@ -7,7 +7,6 @@ import { IAppState } from "../../store/state";
 import { connect } from "react-redux";
 import { CombinedDataSelectors } from "../../store/selectors";
 import { theme } from "../../theme";
-import { CapabilitiesActions } from "../../store/actions";
 import { CommonActions } from "@react-navigation/native";
 
 interface ILoadingSelfProps {
