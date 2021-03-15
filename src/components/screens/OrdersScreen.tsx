@@ -1,4 +1,4 @@
-import React, { Dispatch, useCallback } from "react";
+import React, { Dispatch, useCallback, useState } from "react";
 import { StackScreenProps } from "@react-navigation/stack";
 import { View } from "react-native";
 import { connect } from "react-redux";
@@ -16,6 +16,7 @@ import { orderApiService } from "../../services";
 import { takeUntil } from "rxjs/operators";
 import { Subject } from "rxjs";
 import { IAlertState } from "../../interfaces";
+import { IStatusItem, IStatusPickerData, StatusPicker } from "../simple/status-selector/StatusPicker";
 
 interface IOrdersSelfProps {
     // store props
@@ -31,6 +32,17 @@ interface IOrdersSelfProps {
 }
 
 interface IOrdersProps extends StackScreenProps<any, MainNavigationScreenTypes.ORDERS>, IOrdersSelfProps { }
+
+const getMinimumPositionsStatus = (positions: Array<ICompiledOrderPosition>): OrderPositionStatuses => {
+    let minimumStatus: OrderPositionStatuses = OrderPositionStatuses.CANCELED;
+    for (let i = 0, l = positions.length; i < l; i++) {
+        const pos = positions[i];
+
+        minimumStatus = Math.min(minimumStatus, pos.status, getMinimumPositionsStatus(pos.children));
+    }
+
+    return minimumStatus;
+}
 
 const getNextOrderStatus = (status: OrderStatuses): OrderStatuses => {
     switch (status) {
@@ -58,12 +70,82 @@ const getNextOrderPositionStatus = (status: OrderPositionStatuses): OrderPositio
     return status;
 }
 
+const ORDER_STATUS_LIST: Array<IStatusItem> = [
+    {
+        name: "Новый",
+        value: OrderStatuses.NEW,
+        color: "gray",
+        textColor: "white",
+    },
+    {
+        name: "Сборка",
+        value: OrderStatuses.IN_PROCESS,
+        color: "yellow",
+        textColor: "black",
+    },
+    {
+        name: "Готовый",
+        value: OrderStatuses.COMPLETE,
+        color: "green",
+        textColor: "black",
+    },
+    {
+        name: "Отменен",
+        value: OrderStatuses.CANCELED,
+        color: "2e2e2e",
+        textColor: "red",
+    }
+];
+
+const ORDER_POSITION_STATUS_LIST: Array<IStatusItem> = [
+    {
+        name: "Новый",
+        value: OrderPositionStatuses.NEW,
+        color: "gray",
+        textColor: "white",
+    },
+    {
+        name: "Сборка",
+        value: OrderPositionStatuses.IN_PROCESS,
+        color: "yellow",
+        textColor: "black",
+    },
+    {
+        name: "Готовый",
+        value: OrderPositionStatuses.COMPLETE,
+        color: "green",
+        textColor: "black",
+    },
+    {
+        name: "Отменен",
+        value: OrderPositionStatuses.CANCELED,
+        color: "2e2e2e",
+        textColor: "red",
+    }
+];
+
 const OrdersScreenContainer = React.memo(({ _orders, _language, _currency, navigation,
     _onSetOrdersVersion, _onSetOrderStatus, _onSetOrderPositionStatus, _alertOpen }: IOrdersProps) => {
-    const onSelectOrderHandler = useCallback((order: ICompiledOrder) => {
+    const [selectStatusData, setSelectStatusData] = useState<IStatusPickerData | undefined>(undefined);
+
+    const onCloseSelectStatusHandler = useCallback(() => {
+        setSelectStatusData(undefined);
+    }, []);
+
+    const onSelectStatusHandler = useCallback((order: ICompiledOrder, position: ICompiledOrderPosition | undefined,
+        status: OrderStatuses | OrderPositionStatuses) => {
+        if (!!position) {
+            setOrderPositionStatus(order, position, status as unknown as OrderPositionStatuses);
+            setSelectStatusData(undefined);
+        } else {
+            setOrderStatus(order, status as unknown as OrderStatuses);
+            setSelectStatusData(undefined);
+        }
+    }, []);
+
+    const setOrderStatus = useCallback((order: ICompiledOrder, status: OrderStatuses) => {
         const unsubscribe$ = new Subject<void>();
-        const status = getNextOrderStatus(order.status);
-        // if (status !== order.status) {
+        if (status !== order.status) {
             orderApiService.changeOrderStatus(order.id as string, status).pipe(
                 takeUntil(unsubscribe$),
             ).subscribe(
@@ -81,24 +163,41 @@ const OrdersScreenContainer = React.memo(({ _orders, _language, _currency, navig
                             {
                                 title: "Повторить",
                                 action: () => {
-                                    onSelectOrderHandler(order);
+                                    setOrderStatus(order, status);
                                 }
                             }
                         ]
                     });
                 }
             );
-        // }
+        }
 
         return () => {
             unsubscribe$.next();
             unsubscribe$.complete();
         }
+    }, [_orders]);
+
+    const onSelectOrderHandler = useCallback((order: ICompiledOrder, isAnyStatus: boolean) => {
+        if (isAnyStatus) {
+            const statuses = ORDER_STATUS_LIST.filter(s => s.value > getMinimumPositionsStatus(order.positions));
+
+            if (statuses.length > 0) {
+                setSelectStatusData({
+                    order,
+                    position: undefined,
+                    statuses,
+                });
+            }
+        } else {
+            const status = getNextOrderStatus(order.status);
+            setOrderStatus(order, status);
+        }
     }, []);
 
-    const onSelectOrderPositionHandler = useCallback((order: ICompiledOrder, position: ICompiledOrderPosition) => {
+    const setOrderPositionStatus = useCallback((order: ICompiledOrder, position: ICompiledOrderPosition, status: OrderPositionStatuses) => {
         const unsubscribe$ = new Subject<void>();
-        const status = getNextOrderPositionStatus(position.status);
+
         if (status !== position.status) {
             orderApiService.changeOrderPositionStatus(order.id as string, position.id as string, status).pipe(
                 takeUntil(unsubscribe$),
@@ -117,7 +216,7 @@ const OrdersScreenContainer = React.memo(({ _orders, _language, _currency, navig
                             {
                                 title: "Повторить",
                                 action: () => {
-                                    onSelectOrderPositionHandler(order, position);
+                                    setOrderPositionStatus(order, position, status);
                                 }
                             }
                         ]
@@ -132,11 +231,25 @@ const OrdersScreenContainer = React.memo(({ _orders, _language, _currency, navig
         }
     }, []);
 
+    const onSelectOrderPositionHandler = useCallback((order: ICompiledOrder, position: ICompiledOrderPosition, isAnyStatus: boolean) => {
+        if (isAnyStatus) {
+            setSelectStatusData({
+                order,
+                position,
+                statuses: ORDER_POSITION_STATUS_LIST.filter(s => s.value !== position.status),
+            });
+        } else {
+            const status = getNextOrderPositionStatus(position.status);
+            setOrderPositionStatus(order, position, status);
+        }
+    }, []);
+
     return (
         <View style={{
             width: "100%", height: "100%",
             backgroundColor: theme.themes[theme.name].intro.background
         }}>
+            <StatusPicker data={selectStatusData} onSelect={onSelectStatusHandler} onClose={onCloseSelectStatusHandler} />
             <OrderListContainer orders={_orders} currency={_currency} language={_language}
                 onSelectOrder={onSelectOrderHandler} onSelectOrderPosition={onSelectOrderPositionHandler} />
         </View >

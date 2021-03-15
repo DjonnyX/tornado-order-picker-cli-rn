@@ -93,7 +93,9 @@ const setOrderPositionStatus = (positions: Array<ICompiledOrderPosition>, status
     for (let i = 0, l = positions.length; i < l; i++) {
         const pos = positions[i];
 
-        positions[i] = { ...pos, status };
+        if (pos.status < status) {
+            positions[i] = { ...pos, status };
+        }
 
         setOrderPositionStatus(pos.children, status);
     }

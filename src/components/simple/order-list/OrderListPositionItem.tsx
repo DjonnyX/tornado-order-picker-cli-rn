@@ -5,7 +5,7 @@ import { theme } from "../../../theme";
 import { OrderPositionStatuses } from "@djonnyx/tornado-types";
 
 interface IOrderListPositionItemProps {
-    onSelect: (postion: ICompiledOrderPosition) => void;
+    onSelect: (postion: ICompiledOrderPosition, isAnyStatus?: boolean) => void;
     position: ICompiledOrderPosition;
     currency: ICurrency;
     language: ICompiledLanguage;
@@ -32,6 +32,10 @@ export const OrderListPositionItem = React.memo(({ currency, language, position,
         onSelect(position);
     }, [position]);
 
+    const longPressHandler = useCallback((e: GestureResponderEvent) => {
+        onSelect(position, true);
+    }, [position]);
+
     const onSelectHandler = useCallback((position: ICompiledOrderPosition) => {
         onSelect(position);
     }, [position]);
@@ -39,7 +43,7 @@ export const OrderListPositionItem = React.memo(({ currency, language, position,
     return (
         <>
             <View style={{ flex: 1, backgroundColor: getColorByStatus(position.status), borderRadius: 16, marginBottom: 2 }}>
-                <TouchableOpacity style={{ flex: 1, padding: 22 }} onPress={pressHandler}>
+                <TouchableOpacity style={{ flex: 1, padding: 22 }} onPress={pressHandler} onLongPress={longPressHandler}>
                     <View style={{ width: "100%", flexDirection: "row", alignItems: "center", justifyAlign: "space-around" }}>
                         <Text style={{
                             textAlign: "left", fontSize: 12, flex: 1, fontWeight: "bold",
