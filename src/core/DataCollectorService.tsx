@@ -3,7 +3,7 @@ import { connect } from "react-redux";
 import { BehaviorSubject, from, forkJoin, of, Subject } from "rxjs";
 import { take, takeUntil, filter } from "rxjs/operators";
 import {
-    IAsset, ICompiledData, ICompiledOrderData, ICompiledOrderType, ICompiledProduct, ICurrency, IRefs,
+    IAsset, ICompiledData, ICompiledOrder, ICompiledOrderData, ICompiledOrderType, ICompiledProduct, ICurrency, IRefs,
     RefTypes
 } from "@djonnyx/tornado-types";
 import { AssetsStore, IAssetsStoreResult } from "@djonnyx/tornado-assets-store";
@@ -29,6 +29,7 @@ interface IDataCollectorServiceProps {
     _serialNumber?: string | undefined;
     _storeId?: string | undefined;
     _currentScreen?: string | undefined;
+    _orders?: Array<ICompiledOrder>;
 }
 
 interface IDataCollectorServiceState { }
@@ -177,7 +178,10 @@ class DataCollectorServiceContainer extends Component<IDataCollectorServiceProps
         ).subscribe(
             version => {
                 // чтобы не обновлять весь список, когда конкретный заказ был обновлен
-                this._orderDataCombiner?.setRefVersion(RefTypes.ORDERS, version);
+                if (!!this._orderDataCombiner) {
+                    this._orderDataCombiner.setRefVersion(RefTypes.ORDERS, version as number);
+                    this._orderDataCombiner.setOrders(this.props._orders as Array<ICompiledOrder>);
+                }
             }
         )
     }
@@ -255,6 +259,7 @@ const mapStateToProps = (state: IAppState) => {
         _storeId: SystemSelectors.selectStoreId(state),
         _currentScreen: CapabilitiesSelectors.selectCurrentScreen(state),
         _version: OrdersSelectors.selectVersion(state),
+        _orders: OrdersSelectors.selectCollection(state),
     };
 };
 

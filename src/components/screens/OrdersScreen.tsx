@@ -150,8 +150,8 @@ const OrdersScreenContainer = React.memo(({ _orders, _language, _currency, navig
                 takeUntil(unsubscribe$),
             ).subscribe(
                 data => {
-                    _onSetOrdersVersion(data.meta.ref.version);
                     _onSetOrderStatus(order.id as string, status);
+                    _onSetOrdersVersion(data.meta.ref.version);
                 },
                 err => {
                     _alertOpen({
@@ -203,8 +203,8 @@ const OrdersScreenContainer = React.memo(({ _orders, _language, _currency, navig
                 takeUntil(unsubscribe$),
             ).subscribe(
                 data => {
-                    _onSetOrdersVersion(data.meta.ref.version);
                     _onSetOrderPositionStatus(order.id as string, position.id as string, data.data.status, status);
+                    _onSetOrdersVersion(data.meta.ref.version);
                 },
                 err => {
                     _alertOpen({
