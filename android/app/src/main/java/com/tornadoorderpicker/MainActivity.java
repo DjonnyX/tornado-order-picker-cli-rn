@@ -61,7 +61,7 @@ public class MainActivity extends ReactActivity implements OnKeyboardVisibilityL
     protected void onResume() {
         super.onResume();
 
-        setKioskMode();
+        hideSystemUI();
     }
 
     private void setKeyboardVisibilityListener(final OnKeyboardVisibilityListener onKeyboardVisibilityListener) {
@@ -92,6 +92,13 @@ public class MainActivity extends ReactActivity implements OnKeyboardVisibilityL
     @Override
     public void onVisibilityChanged(boolean visible) {
         hideSystemUI();
+    }
+
+    @Override
+    public void onWindowFocusChanged(boolean hasFocus) {
+        if (hasFocus) {
+            hideSystemUI();
+        }
     }
 
     @RequiresApi(api = Build.VERSION_CODES.M)
