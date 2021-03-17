@@ -198,6 +198,7 @@ const AuthScreenContainer = React.memo(({ _serialNumber, _setupStep, _terminalId
                         setShowProgressBar(false);
 
                         refApiService.serial = orderApiService.serial = _serialNumber;
+                        orderApiService.storeId = _storeId;
 
                         // License valid!
                         navigation.dispatch(

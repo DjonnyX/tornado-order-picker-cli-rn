@@ -111,6 +111,16 @@ class OrderApiService implements IDataService {
         this._serial = v;
     }
 
+    private _storeId: string | undefined;
+
+    public set storeId(v: string) {
+        if (this._storeId === v) {
+            return;
+        }
+
+        this._storeId = v;
+    }
+
     async getAccessToken(options?: IApiRequestOptions): Promise<string> {
         return AuthStore.getToken(options?.serial || this._serial || "", config.orderServer.apiKeyTokenSalt);
     }
@@ -123,7 +133,7 @@ class OrderApiService implements IDataService {
                 from(this.getAccessToken()).pipe(
                     switchMap(token => {
                         return from(
-                            fetch(`${config.orderServer.address}/api/v1/refs`,
+                            fetch(`${config.orderServer.address}/api/v1/refs?storeId=${this._storeId}`,
                                 {
                                     method: "GET",
                                     headers: {
@@ -157,7 +167,7 @@ class OrderApiService implements IDataService {
                 from(this.getAccessToken()).pipe(
                     switchMap(token => {
                         return from(
-                            fetch(`${config.orderServer.address}/api/v1/orders`,
+                            fetch(`${config.orderServer.address}/api/v1/orders?storeId=${this._storeId}`,
                                 {
                                     method: "GET",
                                     headers: {
@@ -191,7 +201,7 @@ class OrderApiService implements IDataService {
                 from(this.getAccessToken()).pipe(
                     switchMap(token => {
                         return from(
-                            fetch(`${config.orderServer.address}/api/v1/order/${id}`,
+                            fetch(`${config.orderServer.address}/api/v1/order/${id}?storeId=${this._storeId}`,
                                 {
                                     method: "GET",
                                     headers: {
