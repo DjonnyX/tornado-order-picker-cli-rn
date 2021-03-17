@@ -133,7 +133,7 @@ class OrderApiService implements IDataService {
                 from(this.getAccessToken()).pipe(
                     switchMap(token => {
                         return from(
-                            fetch(`${config.orderServer.address}/api/v1/refs`,
+                            fetch(`${config.orderServer.address}/api/v1/refs?storeId=${this._storeId}`,
                                 {
                                     method: "GET",
                                     headers: {
@@ -167,7 +167,7 @@ class OrderApiService implements IDataService {
                 from(this.getAccessToken()).pipe(
                     switchMap(token => {
                         return from(
-                            fetch(`${config.orderServer.address}/api/v1/orders?storeId.equals=${this._storeId}`,
+                            fetch(`${config.orderServer.address}/api/v1/orders?storeId=${this._storeId}`,
                                 {
                                     method: "GET",
                                     headers: {
@@ -201,7 +201,7 @@ class OrderApiService implements IDataService {
                 from(this.getAccessToken()).pipe(
                     switchMap(token => {
                         return from(
-                            fetch(`${config.orderServer.address}/api/v1/order/${id}`,
+                            fetch(`${config.orderServer.address}/api/v1/order/${id}?storeId=${this._storeId}`,
                                 {
                                     method: "GET",
                                     headers: {
