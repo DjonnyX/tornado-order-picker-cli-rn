@@ -1,17 +1,16 @@
 import React, { Component, Dispatch } from "react";
 import { connect } from "react-redux";
-import { BehaviorSubject, from, forkJoin, of, Subject } from "rxjs";
+import { BehaviorSubject, forkJoin, of, Subject } from "rxjs";
 import { take, takeUntil, filter } from "rxjs/operators";
 import {
     IAsset, ICompiledData, ICompiledOrder, ICompiledOrderData, ICompiledOrderType, ICompiledProduct, ICurrency, IRefs,
     RefTypes
 } from "@djonnyx/tornado-types";
-import { AssetsStore, IAssetsStoreResult } from "@djonnyx/tornado-assets-store";
+import { IAssetsStoreResult } from "@djonnyx/tornado-assets-store";
 import { DataCombiner as MenuDataCombiner } from "@djonnyx/tornado-refs-processor";
 import { DataCombiner as OrderDataCombiner } from "@djonnyx/tornado-order-refs-processor";
-import { ExternalStorage } from "../native";
 import { config } from "../Config";
-import { assetsService, orderApiService, refApiService } from "../services";
+import { orderApiService, refApiService } from "../services";
 import { IAppState } from "../store/state";
 import { CombinedDataActions, CapabilitiesActions, OrdersActions } from "../store/actions";
 import { IProgress } from "@djonnyx/tornado-refs-processor/dist/DataCombiner";
@@ -34,18 +33,12 @@ interface IDataCollectorServiceProps {
 
 interface IDataCollectorServiceState { }
 
-const COMPILED_DATA_FILE_NAME = "refs.json";
-
 class DataCollectorServiceContainer extends Component<IDataCollectorServiceProps, IDataCollectorServiceState> {
     private _unsubscribe$: Subject<void> | null = new Subject<void>();
-
-    private _assetsStore: AssetsStore | null = null;
 
     private _menuDataCombiner: MenuDataCombiner | null = null;
 
     private _orderDataCombiner: OrderDataCombiner | null = null;
-
-    private _savedData: IRefs | undefined;
 
     private _isLoadingStarted = false;
 
@@ -62,41 +55,6 @@ class DataCollectorServiceContainer extends Component<IDataCollectorServiceProps
     }
 
     async componentDidMount() {
-        let userDataPath: string | undefined = undefined;
-
-        try {
-            const isStorageAvailable = await ExternalStorage.isStorageAvailable();
-            const isStorageWritable = await ExternalStorage.isStorageWritable();
-
-            if (isStorageAvailable && !isStorageWritable) {
-                userDataPath = await ExternalStorage.getPath();
-            }
-        } catch (err) {
-            console.warn(err);
-            return;
-        }
-
-        const storePath = `${userDataPath}/assets`;
-
-        try {
-            if (!await assetsService.exists(storePath)) {
-                await assetsService.mkdir(storePath);
-            }
-        } catch (err) {
-            console.warn(err, storePath);
-        }
-
-        try {
-            this._savedData = await assetsService.readFile(`${storePath}/${COMPILED_DATA_FILE_NAME}`);
-        } catch (err) {
-            console.warn("Saved data not found.");
-        }
-
-        this._assetsStore = new AssetsStore(storePath, assetsService, {
-            createDirectoryRecurtion: false,
-            maxThreads: 1,
-        });
-
         this._orderDataCombiner = new OrderDataCombiner({
             getRefs: () => ({
                 products: this._menuRefs?.refs.products as Array<ICompiledProduct>,
@@ -140,8 +98,6 @@ class DataCollectorServiceContainer extends Component<IDataCollectorServiceProps
             filter(data => !!data),
         ).subscribe(
             data => {
-                assetsService.writeFile(`${storePath}/${COMPILED_DATA_FILE_NAME}`, data.refs.__raw);
-
                 let isNeedLoadOrderRefs = false;
                 if (!this._menuRefs) {
                     isNeedLoadOrderRefs = true;
@@ -156,7 +112,7 @@ class DataCollectorServiceContainer extends Component<IDataCollectorServiceProps
                         this._orderDataCombiner.dependenciesRefs = {
                             products: data.refs?.products,
                             orderTypes: data.refs?.orderTypes,
-                            currencies: data.refs?.__raw.currencies,
+                            currencies: data.refs?.__raw?.currencies,
                         };
                     }
                 }
@@ -191,16 +147,9 @@ class DataCollectorServiceContainer extends Component<IDataCollectorServiceProps
             return;
         }
 
-        if (!this._assetsStore) {
-            return;
-        }
-
         this._isLoadingStarted = true;
 
         forkJoin([
-            from(
-                this._assetsStore.init(),
-            ),
             this._serialNumber$.pipe(
                 // filter(s => s !== undefined),
                 take(1), // Если серийник поменяется, нужно чистить базу
@@ -209,7 +158,13 @@ class DataCollectorServiceContainer extends Component<IDataCollectorServiceProps
             take(1),
             takeUntil(this._unsubscribe$ as any),
         ).subscribe(() => {
-            this._menuDataCombiner?.init(this.props._storeId as string, this._savedData as any);
+            this._menuDataCombiner?.init(this.props._storeId as string, {
+                refList: [
+                    RefTypes.LANGUAGES,
+                    RefTypes.TRANSLATIONS,
+                    RefTypes.PRODUCTS,
+                ],
+            });
         });
     }
 
@@ -234,11 +189,6 @@ class DataCollectorServiceContainer extends Component<IDataCollectorServiceProps
         if (!!this._menuDataCombiner) {
             this._menuDataCombiner.dispose();
             this._menuDataCombiner = null;
-        }
-
-        if (!!this._assetsStore) {
-            this._assetsStore.dispose();
-            this._assetsStore = null;
         }
 
         if (!!this._unsubscribe$) {

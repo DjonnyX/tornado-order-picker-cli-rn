@@ -21,7 +21,7 @@
   "dependencies": {
     "@djonnyx/tornado-assets-store": "0.1.10",
     "@djonnyx/tornado-order-refs-processor": "^1.0.7",
-    "@djonnyx/tornado-refs-processor": "^1.1.31",
+    "@djonnyx/tornado-refs-processor": "^1.2.1",
     "@djonnyx/tornado-types": "^1.4.8",
     "@react-native-community/masked-view": "^0.1.10",
     "@react-native-community/picker": "^1.8.1",
