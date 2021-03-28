@@ -366,31 +366,36 @@ const AuthScreenContainer = React.memo(({ _theme, _serialNumber, _setupStep, _te
     }, [_storeId, _terminalId]);
 
     return (
-        <View style={{ flex: 1, justifyContent: "center", alignItems: "center", backgroundColor: theme.themes[theme.name].loading.background }}>
+        <>
             {
-                !isLicenseValid &&
-                <>
+                !!_theme &&
+                <View style={{ flex: 1, justifyContent: "center", alignItems: "center", backgroundColor: theme.themes[theme.name].loading.background }}>
                     {
-                        // Enter serial number
-                        _setupStep === 0 &&
-                        <FormSN themeName={_theme} value={_serialNumber} isProgress={showProgressBar} onComplete={authHandler} />
+                        !isLicenseValid &&
+                        <>
+                            {
+                                // Enter serial number
+                                _setupStep === 0 &&
+                                <FormSN themeName={_theme} value={_serialNumber} isProgress={showProgressBar} onComplete={authHandler} />
+                            }
+                            {
+                                // Enter terminal name and store
+                                _setupStep === 1 &&
+                                <FormTParams themeName={_theme} stores={stores} isProgress={showProgressBar} onComplete={saveParamsHandler} />
+                            }
+                        </>
                     }
                     {
-                        // Enter terminal name and store
-                        _setupStep === 1 &&
-                        <FormTParams themeName={_theme} stores={stores} isProgress={showProgressBar} onComplete={saveParamsHandler} />
+                        !!showProgressBar &&
+                        <ProgressBar
+                            style={{ width: "100%", marginTop: 12, maxWidth: 140, marginLeft: "10%", marginRight: "10%" }}
+                            styleAttr="Horizontal"
+                            indeterminate={true}
+                            color={theme.themes[theme.name].loading.progressBar.trackColor}></ProgressBar>
                     }
-                </>
+                </View>
             }
-            {
-                !!showProgressBar &&
-                <ProgressBar
-                    style={{ width: "100%", marginTop: 12, maxWidth: 140, marginLeft: "10%", marginRight: "10%" }}
-                    styleAttr="Horizontal"
-                    indeterminate={true}
-                    color={theme.themes[theme.name].loading.progressBar.trackColor}></ProgressBar>
-            }
-        </View>
+        </>
     );
 });
 
