@@ -7,13 +7,14 @@ import { getPositionStatusTheme } from "../../../utils/statusTheme";
 
 interface IOrderListPositionItemProps {
     onSelect: (postion: ICompiledOrderPosition, actionHandler: IActionHandler, isAnyStatus?: boolean) => void;
+    themeName: string;
     position: ICompiledOrderPosition;
     currency: ICurrency;
     language: ICompiledLanguage;
     isModifier?: boolean;
 }
 
-export const OrderListPositionItem = React.memo(({ currency, language, position, isModifier = false, onSelect }: IOrderListPositionItemProps) => {
+export const OrderListPositionItem = React.memo(({ themeName, currency, language, position, isModifier = false, onSelect }: IOrderListPositionItemProps) => {
     const [isLoading, setIsLoading] = useState<boolean>(false);
 
     const actionHandler = {
@@ -82,7 +83,8 @@ export const OrderListPositionItem = React.memo(({ currency, language, position,
             <View style={{ width: "100%" }}>
                 {
                     position.children.filter(p => !!p.product).map(p =>
-                        <OrderListPositionItem key={p.id} position={p} language={language} currency={currency} onSelect={onSelectHandler} isModifier={true} />
+                        <OrderListPositionItem key={p.id} themeName={themeName} position={p} language={language} currency={currency}
+                            onSelect={onSelectHandler} isModifier={true} />
                     )
                 }
             </View>

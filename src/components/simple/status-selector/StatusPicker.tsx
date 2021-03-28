@@ -20,13 +20,14 @@ export interface IStatusPickerData {
 }
 
 interface IStatusPickerProps {
+    themeName: string;
     data: IStatusPickerData | undefined;
     onSelect: (order: ICompiledOrder, position: ICompiledOrderPosition | undefined, actionHandler: IActionHandler,
         status: OrderStatuses | OrderPositionStatuses) => void;
     onClose: () => void;
 }
 
-export const StatusPicker = React.memo(({ data, onSelect, onClose }: IStatusPickerProps) => {
+export const StatusPicker = React.memo(({ themeName, data, onSelect, onClose }: IStatusPickerProps) => {
     const onSelectHandler = useCallback((item: IStatusItem) => {
         if (!!data?.order) {
             onSelect(data?.order, data?.position, data?.actionHandler, item.value);
@@ -36,7 +37,7 @@ export const StatusPicker = React.memo(({ data, onSelect, onClose }: IStatusPick
     return (
         <ModalRollTop visible={!!data?.statuses}>
             <View style={{ width: "100%", alignItems: "flex-end" }}>
-                <CloseButton onPress={onClose}></CloseButton>
+                <CloseButton themeName={themeName} onPress={onClose}></CloseButton>
             </View>
             <View style={{ flex: 1, width: "100%", alignItems: "center", justifyContent: "center" }}>
                 {
@@ -66,10 +67,11 @@ export const StatusPicker = React.memo(({ data, onSelect, onClose }: IStatusPick
 });
 
 interface ICloseButtonProps {
+    themeName: string;
     onPress: () => void;
 }
 
-const CloseButton = ({ onPress }: ICloseButtonProps) => {
+const CloseButton = ({ themeName, onPress }: ICloseButtonProps) => {
     return (
         <TouchableHighlight onPress={onPress}>
             <View

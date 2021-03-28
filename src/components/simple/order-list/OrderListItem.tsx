@@ -7,6 +7,7 @@ import { IActionHandler } from "../../../interfaces";
 import { getOrderStatusTheme } from "../../../utils/statusTheme";
 
 interface IOrderListItemProps {
+    themeName: string;
     order: ICompiledOrder;
     currency: ICurrency;
     language: ICompiledLanguage;
@@ -14,7 +15,7 @@ interface IOrderListItemProps {
     onSelectOrderPosition: (order: ICompiledOrder, postion: ICompiledOrderPosition, actionHandler: IActionHandler, isAnyStatus: boolean) => void;
 }
 
-export const OrderListItem = React.memo(({ currency, language, order,
+export const OrderListItem = React.memo(({ themeName, currency, language, order,
     onSelectOrder, onSelectOrderPosition }: IOrderListItemProps) => {
     const [isLoading, setIsLoading] = useState<boolean>(false);
 
@@ -69,7 +70,8 @@ export const OrderListItem = React.memo(({ currency, language, order,
                     <View style={{ width: "100%" }}>
                         {
                             !!order?.positions && order.positions.filter(p => !!p.product).map(p =>
-                                <OrderListPositionItem key={p.id} position={p} language={language} currency={currency} onSelect={onPositionSelectHandler} />
+                                <OrderListPositionItem key={p.id} themeName={themeName} position={p} language={language} currency={currency}
+                                    onSelect={onPositionSelectHandler} />
                             )
                         }
                     </View>

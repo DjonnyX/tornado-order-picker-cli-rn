@@ -20,6 +20,7 @@ import { IStatusItem, IStatusPickerData, StatusPicker } from "../simple/status-s
 
 interface IOrdersSelfProps {
     // store props
+    _theme: string;
     _orders: Array<ICompiledOrder>;
     _currency: ICurrency;
     _language: ICompiledLanguage;
@@ -124,7 +125,7 @@ const ORDER_POSITION_STATUS_LIST: Array<IStatusItem> = [
     }
 ];
 
-const OrdersScreenContainer = React.memo(({ _orders, _language, _currency, navigation,
+const OrdersScreenContainer = React.memo(({ _theme, _orders, _language, _currency, navigation,
     _onSetOrdersVersion, _onSetOrderStatus, _onSetOrderPositionStatus, _alertOpen }: IOrdersProps) => {
     const [selectStatusData, setSelectStatusData] = useState<IStatusPickerData | undefined>(undefined);
 
@@ -265,8 +266,8 @@ const OrdersScreenContainer = React.memo(({ _orders, _language, _currency, navig
             width: "100%", height: "100%",
             backgroundColor: theme.themes[theme.name].orders.background
         }}>
-            <StatusPicker data={selectStatusData} onSelect={onSelectStatusHandler} onClose={onCloseSelectStatusHandler} />
-            <OrderListContainer orders={_orders} currency={_currency} language={_language}
+            <StatusPicker themeName={_theme} data={selectStatusData} onSelect={onSelectStatusHandler} onClose={onCloseSelectStatusHandler} />
+            <OrderListContainer themeName={_theme} orders={_orders} currency={_currency} language={_language}
                 onSelectOrder={onSelectOrderHandler} onSelectOrderPosition={onSelectOrderPositionHandler} />
         </View >
     );
@@ -274,6 +275,7 @@ const OrdersScreenContainer = React.memo(({ _orders, _language, _currency, navig
 
 const mapStateToProps = (state: IAppState, ownProps: IOrdersProps) => {
     return {
+        _theme: CapabilitiesSelectors.selectTheme(state),
         _orders: OrdersSelectors.selectCollection(state),
         _language: CapabilitiesSelectors.selectLanguage(state),
         _currency: CombinedDataSelectors.selectDefaultCurrency(state),
