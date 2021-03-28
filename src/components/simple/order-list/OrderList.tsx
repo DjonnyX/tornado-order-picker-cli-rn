@@ -1,6 +1,7 @@
 import { ICompiledLanguage, ICompiledOrder, ICompiledOrderPosition, ICurrency } from "@djonnyx/tornado-types";
 import React, { useCallback } from "react";
 import { View, SafeAreaView, ScrollView } from "react-native";
+import { IActionHandler } from "../../../interfaces";
 import { GridList } from "../../layouts/GridList";
 import { OrderListItem } from "./OrderListItem";
 
@@ -10,19 +11,20 @@ interface IOrderListProps {
     language: ICompiledLanguage;
     orders: Array<ICompiledOrder>;
     currency: ICurrency;
-    onSelectOrder: (order: ICompiledOrder, isAnyStatus: boolean) => void;
-    onSelectOrderPosition: (order: ICompiledOrder, postion: ICompiledOrderPosition, isAnyStatus: boolean) => void;
+    onSelectOrder: (order: ICompiledOrder, actionHandler: IActionHandler, isAnyStatus: boolean) => void;
+    onSelectOrderPosition: (order: ICompiledOrder, postion: ICompiledOrderPosition, actionHandler: IActionHandler, isAnyStatus: boolean) => void;
 }
 
 export const OrderListContainer = React.memo(({ orders, currency, language,
     onSelectOrder, onSelectOrderPosition }: IOrderListProps) => {
 
-    const onSelectOrderHandler = useCallback((order: ICompiledOrder, isAnyStatus: boolean = false) => {
-        onSelectOrder(order, isAnyStatus);
+    const onSelectOrderHandler = useCallback((order: ICompiledOrder, actionHandler: IActionHandler, isAnyStatus: boolean = false) => {
+        onSelectOrder(order, actionHandler, isAnyStatus);
     }, []);
 
-    const onSelectOrderPositionHandler = useCallback((order: ICompiledOrder, position: ICompiledOrderPosition, isAnyStatus: boolean) => {
-        onSelectOrderPosition(order, position, isAnyStatus);
+    const onSelectOrderPositionHandler = useCallback((order: ICompiledOrder, position: ICompiledOrderPosition, actionHandler: IActionHandler,
+        isAnyStatus: boolean) => {
+        onSelectOrderPosition(order, position, actionHandler, isAnyStatus);
     }, []);
 
     return (

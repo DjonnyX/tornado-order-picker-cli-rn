@@ -15,7 +15,7 @@ import { NotificationActions, OrdersActions } from "../../store/actions";
 import { orderApiService } from "../../services";
 import { takeUntil } from "rxjs/operators";
 import { Subject } from "rxjs";
-import { IAlertState } from "../../interfaces";
+import { IActionHandler, IAlertState } from "../../interfaces";
 import { IStatusItem, IStatusPickerData, StatusPicker } from "../simple/status-selector/StatusPicker";
 
 interface IOrdersSelfProps {
@@ -133,27 +133,30 @@ const OrdersScreenContainer = React.memo(({ _orders, _language, _currency, navig
     }, []);
 
     const onSelectStatusHandler = useCallback((order: ICompiledOrder, position: ICompiledOrderPosition | undefined,
-        status: OrderStatuses | OrderPositionStatuses) => {
+        actionHandler: IActionHandler, status: OrderStatuses | OrderPositionStatuses) => {
         if (!!position) {
-            setOrderPositionStatus(order, position, status as unknown as OrderPositionStatuses);
+            setOrderPositionStatus(order, position, actionHandler, status as unknown as OrderPositionStatuses);
             setSelectStatusData(undefined);
         } else {
-            setOrderStatus(order, status as unknown as OrderStatuses);
+            setOrderStatus(order, status as unknown as OrderStatuses, actionHandler);
             setSelectStatusData(undefined);
         }
     }, []);
 
-    const setOrderStatus = useCallback((order: ICompiledOrder, status: OrderStatuses) => {
+    const setOrderStatus = useCallback((order: ICompiledOrder, status: OrderStatuses, actionHandler: IActionHandler) => {
         const unsubscribe$ = new Subject<void>();
         if (status !== order.status) {
+            actionHandler.onLoad();
             orderApiService.changeOrderStatus(order.id as string, status).pipe(
                 takeUntil(unsubscribe$),
             ).subscribe(
                 data => {
+                    actionHandler.onComplete();
                     _onSetOrderStatus(order.id as string, status);
                     _onSetOrdersVersion(data.meta.ref.version);
                 },
                 err => {
+                    actionHandler.onComplete();
                     _alertOpen({
                         title: "Ошибка", message: err.message ? err.message : err, buttons: [
                             {
@@ -163,7 +166,7 @@ const OrdersScreenContainer = React.memo(({ _orders, _language, _currency, navig
                             {
                                 title: "Повторить",
                                 action: () => {
-                                    setOrderStatus(order, status);
+                                    setOrderStatus(order, status, actionHandler);
                                 }
                             }
                         ]
@@ -173,40 +176,48 @@ const OrdersScreenContainer = React.memo(({ _orders, _language, _currency, navig
         }
 
         return () => {
+            actionHandler.onComplete();
+
             unsubscribe$.next();
             unsubscribe$.complete();
         }
     }, [_orders]);
 
-    const onSelectOrderHandler = useCallback((order: ICompiledOrder, isAnyStatus: boolean) => {
+    const onSelectOrderHandler = useCallback((order: ICompiledOrder, actionHandler: IActionHandler, isAnyStatus: boolean) => {
         if (isAnyStatus) {
             const statuses = ORDER_STATUS_LIST.filter(s => s.value > getMinimumPositionsStatus(order.positions));
 
             if (statuses.length > 0) {
                 setSelectStatusData({
                     order,
+                    actionHandler,
                     position: undefined,
                     statuses,
                 });
             }
         } else {
             const status = getNextOrderStatus(order.status);
-            setOrderStatus(order, status);
+            setOrderStatus(order, status, actionHandler);
         }
     }, []);
 
-    const setOrderPositionStatus = useCallback((order: ICompiledOrder, position: ICompiledOrderPosition, status: OrderPositionStatuses) => {
+    const setOrderPositionStatus = useCallback((order: ICompiledOrder, position: ICompiledOrderPosition, actionHandler: IActionHandler,
+        status: OrderPositionStatuses) => {
+
         const unsubscribe$ = new Subject<void>();
 
         if (status !== position.status) {
+            actionHandler.onLoad();
             orderApiService.changeOrderPositionStatus(order.id as string, position.id as string, status).pipe(
                 takeUntil(unsubscribe$),
             ).subscribe(
                 data => {
+                    actionHandler.onComplete();
                     _onSetOrderPositionStatus(order.id as string, position.id as string, data.data.status, status);
                     _onSetOrdersVersion(data.meta.ref.version);
                 },
                 err => {
+                    actionHandler.onComplete();
                     _alertOpen({
                         title: "Ошибка", message: err.message ? err.message : err, buttons: [
                             {
@@ -216,7 +227,7 @@ const OrdersScreenContainer = React.memo(({ _orders, _language, _currency, navig
                             {
                                 title: "Повторить",
                                 action: () => {
-                                    setOrderPositionStatus(order, position, status);
+                                    setOrderPositionStatus(order, position, actionHandler, status);
                                 }
                             }
                         ]
@@ -226,21 +237,26 @@ const OrdersScreenContainer = React.memo(({ _orders, _language, _currency, navig
         }
 
         return () => {
+            actionHandler.onComplete();
+
             unsubscribe$.next();
             unsubscribe$.complete();
         }
     }, []);
 
-    const onSelectOrderPositionHandler = useCallback((order: ICompiledOrder, position: ICompiledOrderPosition, isAnyStatus: boolean) => {
+    const onSelectOrderPositionHandler = useCallback((order: ICompiledOrder, position: ICompiledOrderPosition, actionHandler: IActionHandler,
+        isAnyStatus: boolean) => {
+
         if (isAnyStatus) {
             setSelectStatusData({
                 order,
+                actionHandler,
                 position,
                 statuses: ORDER_POSITION_STATUS_LIST.filter(s => s.value !== position.status),
             });
         } else {
             const status = getNextOrderPositionStatus(position.status);
-            setOrderPositionStatus(order, position, status);
+            setOrderPositionStatus(order, position, actionHandler, status);
         }
     }, []);
 

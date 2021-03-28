@@ -1,6 +1,7 @@
 import { ICompiledOrder, ICompiledOrderPosition, OrderPositionStatuses, OrderStatuses } from "@djonnyx/tornado-types";
 import React, { useCallback } from "react";
 import { Text, TouchableOpacity, FlatList, View } from "react-native";
+import { IActionHandler } from "../../../interfaces";
 import { Icons, theme } from "../../../theme";
 import { ModalRollTop } from "../ModalRollTop";
 
@@ -15,11 +16,13 @@ export interface IStatusPickerData {
     statuses: Array<IStatusItem> | undefined;
     order: ICompiledOrder;
     position: ICompiledOrderPosition | undefined;
+    actionHandler: IActionHandler;
 }
 
 interface IStatusPickerProps {
     data: IStatusPickerData | undefined;
-    onSelect: (order: ICompiledOrder, position: ICompiledOrderPosition | undefined, status: OrderStatuses | OrderPositionStatuses) => void;
+    onSelect: (order: ICompiledOrder, position: ICompiledOrderPosition | undefined, actionHandler: IActionHandler,
+        status: OrderStatuses | OrderPositionStatuses) => void;
     onClose: () => void;
 }
 
@@ -27,7 +30,7 @@ export const StatusPicker = React.memo(({ data, onSelect, onClose }: IStatusPick
 
     const onSelectHandler = useCallback((item: IStatusItem) => {
         if (!!data?.order) {
-            onSelect(data?.order, data?.position, item.value);
+            onSelect(data?.order, data?.position, data?.actionHandler, item.value);
         }
     }, [data]);
 
