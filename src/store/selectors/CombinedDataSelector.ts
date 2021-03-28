@@ -1,3 +1,4 @@
+import { ITerminalKioskConfig } from "@djonnyx/tornado-types";
 import { createSelector } from "reselect";
 import { IAppState } from "../state";
 
@@ -42,5 +43,17 @@ export namespace CombinedDataSelectors {
 
     export const selectBusinessPeriods = createSelector(getCombinedData, (state) => {
         return state?.data?.refs.__raw.businessPeriods;
+    });
+
+    export const selectTerminals = createSelector(getCombinedData, (state) => {
+        return state?.data?.refs.__raw.terminals;
+    });
+
+    export const selectTerminal = createSelector(getCombinedData, (state) => {
+        return state?.terminal;
+    });
+
+    export const selectConfig = createSelector(getCombinedData, (state) => {
+        return state?.terminal?.config as ITerminalKioskConfig;
     });
 }

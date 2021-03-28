@@ -4,6 +4,7 @@ import { BehaviorSubject, forkJoin, of, Subject } from "rxjs";
 import { take, takeUntil, filter } from "rxjs/operators";
 import {
     IAsset, ICompiledData, ICompiledOrder, ICompiledOrderData, ICompiledOrderType, ICompiledProduct, ICurrency, IRefs,
+    ITerminal,
     RefTypes
 } from "@djonnyx/tornado-types";
 import { IAssetsStoreResult } from "@djonnyx/tornado-assets-store";
@@ -16,9 +17,11 @@ import { CombinedDataActions, CapabilitiesActions, OrdersActions } from "../stor
 import { IProgress } from "@djonnyx/tornado-refs-processor/dist/DataCombiner";
 import { CapabilitiesSelectors, OrdersSelectors, SystemSelectors } from "../store/selectors";
 import { MainNavigationScreenTypes } from "../components/navigation";
+import { theme } from "../theme";
 
 interface IDataCollectorServiceProps {
     // store
+    _onChangeTerminal: (terminal: ITerminal) => void;
     _onChangeOrders: (data: ICompiledOrderData, version: number) => void;
     _onChangeMenu: (data: ICompiledData) => void;
     _onProgress: (progress: IProgress) => void;
@@ -27,6 +30,7 @@ interface IDataCollectorServiceProps {
     _version?: number;
     _serialNumber?: string | undefined;
     _storeId?: string | undefined;
+    _terminalId?: string | undefined;
     _currentScreen?: string | undefined;
     _orders?: Array<ICompiledOrder>;
 }
@@ -70,7 +74,7 @@ class DataCollectorServiceContainer extends Component<IDataCollectorServiceProps
             filter(data => !!data),
         ).subscribe(
             data => {
-                this.props._onChangeOrders(data, this._orderDataCombiner?.getRefVersion(RefTypes.ORDERS));
+                this.props._onChangeOrders(data, this._orderDataCombiner?.getRefVersion(RefTypes.ORDERS) as number);
             }
         );
 
@@ -118,6 +122,11 @@ class DataCollectorServiceContainer extends Component<IDataCollectorServiceProps
                 }
 
                 this.props._onChangeMenu(data);
+
+                const terminal = data.refs.__raw.terminals.find(t => t.id === this.props._terminalId);
+                if (!!terminal) {
+                    this.props._onChangeTerminal(terminal);
+                }
             },
         );
 
@@ -162,6 +171,7 @@ class DataCollectorServiceContainer extends Component<IDataCollectorServiceProps
                 refList: [
                     RefTypes.LANGUAGES,
                     RefTypes.TRANSLATIONS,
+                    RefTypes.TERMINALS,
                     RefTypes.PRODUCTS,
                 ],
             });
@@ -207,6 +217,7 @@ const mapStateToProps = (state: IAppState) => {
     return {
         _serialNumber: SystemSelectors.selectSerialNumber(state),
         _storeId: SystemSelectors.selectStoreId(state),
+        _terminalId: SystemSelectors.selectTerminalId(state),
         _currentScreen: CapabilitiesSelectors.selectCurrentScreen(state),
         _version: OrdersSelectors.selectVersion(state),
         _orders: OrdersSelectors.selectCollection(state),
@@ -219,6 +230,11 @@ const mapDispatchToProps = (dispatch: Dispatch<any>) => {
             dispatch(CombinedDataActions.setData(data));
             dispatch(CapabilitiesActions.setLanguage(data.refs.defaultLanguage));
             dispatch(CapabilitiesActions.setOrderType(data.refs.defaultOrderType));
+        },
+        _onChangeTerminal: (terminal: ITerminal) => {
+            theme.name = terminal.config.theme;
+
+            dispatch(CombinedDataActions.setTerminal(terminal));
         },
         _onChangeOrders: (data: ICompiledOrderData, version: number) => {
             dispatch(CombinedDataActions.setOrdersData(data));
