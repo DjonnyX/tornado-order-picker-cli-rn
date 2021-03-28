@@ -74,26 +74,26 @@ const ORDER_STATUS_LIST: Array<IStatusItem> = [
     {
         name: "Новый",
         value: OrderStatuses.NEW,
-        color: "gray",
-        textColor: "white",
+        color: theme.themes[theme.name].orders.items.new.background,
+        textColor: theme.themes[theme.name].orders.items.new.textColor,
     },
     {
         name: "Сборка",
         value: OrderStatuses.IN_PROCESS,
-        color: "yellow",
-        textColor: "black",
+        color: theme.themes[theme.name].orders.items.process.background,
+        textColor: theme.themes[theme.name].orders.items.process.textColor,
     },
     {
         name: "Готовый",
         value: OrderStatuses.COMPLETE,
-        color: "green",
-        textColor: "black",
+        color: theme.themes[theme.name].orders.items.complete.background,
+        textColor: theme.themes[theme.name].orders.items.complete.textColor,
     },
     {
         name: "Отменен",
         value: OrderStatuses.CANCELED,
-        color: "2e2e2e",
-        textColor: "red",
+        color: theme.themes[theme.name].orders.items.canceled.background,
+        textColor: theme.themes[theme.name].orders.items.canceled.textColor,
     }
 ];
 
@@ -101,26 +101,26 @@ const ORDER_POSITION_STATUS_LIST: Array<IStatusItem> = [
     {
         name: "Новый",
         value: OrderPositionStatuses.NEW,
-        color: "gray",
-        textColor: "white",
+        color: theme.themes[theme.name].orders.items.new.position.background,
+        textColor: theme.themes[theme.name].orders.items.new.position.textColor,
     },
     {
         name: "Сборка",
         value: OrderPositionStatuses.IN_PROCESS,
-        color: "yellow",
-        textColor: "black",
+        color: theme.themes[theme.name].orders.items.process.position.background,
+        textColor: theme.themes[theme.name].orders.items.process.position.textColor,
     },
     {
         name: "Готовый",
         value: OrderPositionStatuses.COMPLETE,
-        color: "green",
-        textColor: "black",
+        color: theme.themes[theme.name].orders.items.complete.position.background,
+        textColor: theme.themes[theme.name].orders.items.complete.position.textColor,
     },
     {
         name: "Отменен",
         value: OrderPositionStatuses.CANCELED,
-        color: "2e2e2e",
-        textColor: "red",
+        color: theme.themes[theme.name].orders.items.canceled.position.background,
+        textColor: theme.themes[theme.name].orders.items.canceled.position.textColor,
     }
 ];
 
@@ -263,7 +263,7 @@ const OrdersScreenContainer = React.memo(({ _orders, _language, _currency, navig
     return (
         <View style={{
             width: "100%", height: "100%",
-            backgroundColor: theme.themes[theme.name].intro.background
+            backgroundColor: theme.themes[theme.name].orders.background
         }}>
             <StatusPicker data={selectStatusData} onSelect={onSelectStatusHandler} onClose={onCloseSelectStatusHandler} />
             <OrderListContainer orders={_orders} currency={_currency} language={_language}
