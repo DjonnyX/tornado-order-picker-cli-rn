@@ -1,34 +1,20 @@
 import React, { useCallback, useState } from "react";
 import { View, Text, TouchableOpacity, GestureResponderEvent } from "react-native";
 import { ICurrency, ICompiledLanguage, ICompiledOrderPosition } from "@djonnyx/tornado-types";
-import { theme } from "../../../theme";
-import { OrderPositionStatuses } from "@djonnyx/tornado-types";
 import { IActionHandler } from "../../../interfaces";
 import { ProgressBar } from "@react-native-community/progress-bar-android";
+import { getPositionStatusTheme } from "../../../utils/statusTheme";
 
 interface IOrderListPositionItemProps {
     onSelect: (postion: ICompiledOrderPosition, actionHandler: IActionHandler, isAnyStatus?: boolean) => void;
+    themeName: string;
     position: ICompiledOrderPosition;
     currency: ICurrency;
     language: ICompiledLanguage;
+    isModifier?: boolean;
 }
 
-const getColorByStatus = (status: OrderPositionStatuses): string => {
-    switch (status) {
-        case OrderPositionStatuses.NEW: {
-            return "gray";
-        }
-        case OrderPositionStatuses.IN_PROCESS: {
-            return "yellow";
-        }
-        case OrderPositionStatuses.COMPLETE: {
-            return "green";
-        }
-    }
-    return "1e1e1e";
-}
-
-export const OrderListPositionItem = React.memo(({ currency, language, position, onSelect }: IOrderListPositionItemProps) => {
+export const OrderListPositionItem = React.memo(({ themeName, currency, language, position, isModifier = false, onSelect }: IOrderListPositionItemProps) => {
     const [isLoading, setIsLoading] = useState<boolean>(false);
 
     const actionHandler = {
@@ -52,6 +38,10 @@ export const OrderListPositionItem = React.memo(({ currency, language, position,
         onSelect(position, handler);
     }, [position]);
 
+    const statusTheme = getPositionStatusTheme(position.status);
+    const backgroundColor = isModifier ? statusTheme?.position.modifier.background : statusTheme?.position.background;
+    const textColor = isModifier ? statusTheme?.position.modifier.textColor : statusTheme?.position.textColor;
+
     return (
         <>
             <View style={{ position: "relative", width: "100%", flex: 1 }}>
@@ -64,20 +54,24 @@ export const OrderListPositionItem = React.memo(({ currency, language, position,
                         <ProgressBar indeterminate={true} styleAttr="Small" color={"white"}></ProgressBar>
                     </View>
                 }
-                <View style={{ flex: 1, backgroundColor: getColorByStatus(position.status), borderRadius: 16, marginBottom: 2 }}>
-                    <TouchableOpacity style={{ flex: 1, padding: 22 }} onPress={pressHandler} onLongPress={longPressHandler}>
+                <View style={{ flex: 1, backgroundColor, borderRadius: 10, marginBottom: 2 }}>
+                    <TouchableOpacity style={{ flex: 1, paddingHorizontal: 16, paddingVertical: 20 }} onPress={pressHandler} onLongPress={longPressHandler}>
                         <View style={{ width: "100%", flexDirection: "row", alignItems: "center", justifyContent: "space-around" }}>
                             <Text style={{
-                                textAlign: "left", fontSize: 12, flex: 1, fontWeight: "bold",
-                                color: theme.themes[theme.name].modifiers.item.descriptionColor, textTransform: "uppercase",
+                                textAlign: "left", fontSize: 13, flex: 1, fontWeight: "bold",
+                                color: textColor, textTransform: "uppercase",
+                                textShadowRadius: 2,
+                                textShadowColor: "rgba(0,0,0,0.25)",
                             }}>
                                 {
                                     position.product.contents[language.code]?.name
                                 }
                             </Text>
                             <Text style={{
-                                textAlign: "right", fontSize: 12, fontWeight: "bold",
-                                color: theme.themes[theme.name].modifiers.item.descriptionColor, textTransform: "uppercase",
+                                textAlign: "right", fontSize: 13, fontWeight: "bold",
+                                color: textColor, textTransform: "uppercase",
+                                textShadowRadius: 2,
+                                textShadowColor: "rgba(0,0,0,0.25)",
                             }}>
                                 x{position.quantity}
                             </Text>
@@ -89,7 +83,8 @@ export const OrderListPositionItem = React.memo(({ currency, language, position,
             <View style={{ width: "100%" }}>
                 {
                     position.children.filter(p => !!p.product).map(p =>
-                        <OrderListPositionItem key={p.id} position={p} language={language} currency={currency} onSelect={onSelectHandler} />
+                        <OrderListPositionItem key={p.id} themeName={themeName} position={p} language={language} currency={currency}
+                            onSelect={onSelectHandler} isModifier={true} />
                     )
                 }
             </View>
