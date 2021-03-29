@@ -15,10 +15,14 @@ const capabilitiesReducer: Reducer<ICapabilitiesState, TCapabilitiesActions> = (
 ) => {
     switch (action.type) {
         case CapabilitiesActionTypes.SET_THEME:
-            return {
-                ...state,
-                theme: action.theme,
-            };
+            if (action.theme !== state.theme) {
+                return {
+                    ...state,
+                    theme: action.theme,
+                };
+            }
+
+            return state;
         case CapabilitiesActionTypes.SET_LANGUAGE:
             return {
                 ...state,
