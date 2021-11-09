@@ -507,7 +507,7 @@ class RefApiService {
             from(this.getAccessToken()).pipe(
                 switchMap(token => {
                     return from(
-                        fetch(`${config.refServer.address}/api/v1/terminals`,
+                        fetch(`${config.refServer.address}/api/v1/terminals?type=${TerminalTypes.ORDER_PICKER}`,
                             {
                                 method: "GET",
                                 headers: {
