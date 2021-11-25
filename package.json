@@ -9,7 +9,7 @@
     "start": "react-native start",
     "start:reset-cache": "npm start -- --reset-cache",
     "cache:clean": "del %appdata%\\Temp\\react-native-* & cd android & gradlew clean & cd .. & del node_modules/ & npm cache clean --force & npm install & npm start -- --reset-cache",
-    "build:android": "cd android && gradlew assembleRelease",
+    "build:android": "cd android && gradlew clean && gradlew assembleRelease",
     "setdeviceowner": "adb shell dpm set-device-owner com.tornadoorderpicker/.TornadoDeviceAdminReceiver",
     "removedeviceowner": "adb shell dpm remove-active-admin com.tornadoorderpicker/.TornadoDeviceAdminReceiver",
     "startapp": "adb shell am start -n com.tornadoorderpicker/com.tornadoorderpicker.MainActivity",
@@ -19,10 +19,10 @@
     "lint": "eslint . --ext .js,.jsx,.ts,.tsx"
   },
   "dependencies": {
-    "@djonnyx/tornado-assets-store": "^0.1.14",
-    "@djonnyx/tornado-order-refs-processor": "^1.0.8",
-    "@djonnyx/tornado-refs-processor": "^1.2.29",
-    "@djonnyx/tornado-types": "^1.6.11",
+    "@djonnyx/tornado-assets-store": "^0.1.15",
+    "@djonnyx/tornado-order-refs-processor": "^1.0.9",
+    "@djonnyx/tornado-refs-processor": "^1.2.33",
+    "@djonnyx/tornado-types": "^1.6.18",
     "@react-native-community/masked-view": "^0.1.11",
     "@react-native-community/picker": "^1.8.1",
     "@react-native-community/progress-bar-android": "^1.0.4",

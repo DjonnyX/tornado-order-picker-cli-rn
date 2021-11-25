@@ -5,7 +5,7 @@ const getCapabilities = (state: IAppState) => state.capabilities;
 
 export namespace CapabilitiesSelectors {
     export const selectTheme = createSelector(getCapabilities, (state) => {
-        return state?.theme;
+        return state?.themes;
     });
 
     export const selectLanguage = createSelector(getCapabilities, (state) => {
