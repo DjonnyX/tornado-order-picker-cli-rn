@@ -1,20 +1,20 @@
 import React, { useCallback, useState } from "react";
 import { View, Text, TouchableOpacity, GestureResponderEvent } from "react-native";
-import { ICurrency, ICompiledLanguage, ICompiledOrderPosition } from "@djonnyx/tornado-types";
+import { ICurrency, ICompiledLanguage, ICompiledOrderPosition, IOrderPickerThemeColors } from "@djonnyx/tornado-types";
 import { IActionHandler } from "../../../interfaces";
 import { ProgressBar } from "@react-native-community/progress-bar-android";
 import { getPositionStatusTheme } from "../../../utils/statusTheme";
 
 interface IOrderListPositionItemProps {
     onSelect: (postion: ICompiledOrderPosition, actionHandler: IActionHandler, isAnyStatus?: boolean) => void;
-    themeName: string;
+    theme: IOrderPickerThemeColors;
     position: ICompiledOrderPosition;
     currency: ICurrency;
     language: ICompiledLanguage;
     isModifier?: boolean;
 }
 
-export const OrderListPositionItem = React.memo(({ themeName, currency, language, position, isModifier = false, onSelect }: IOrderListPositionItemProps) => {
+export const OrderListPositionItem = React.memo(({ theme, currency, language, position, isModifier = false, onSelect }: IOrderListPositionItemProps) => {
     const [isLoading, setIsLoading] = useState<boolean>(false);
 
     const actionHandler = {
@@ -38,8 +38,8 @@ export const OrderListPositionItem = React.memo(({ themeName, currency, language
         onSelect(position, handler);
     }, [position]);
 
-    const statusTheme = getPositionStatusTheme(position.status);
-    const backgroundColor = isModifier ? statusTheme?.position.modifier.background : statusTheme?.position.background;
+    const statusTheme = getPositionStatusTheme(theme, position.status);
+    const backgroundColor = isModifier ? statusTheme?.position.modifier.backgroundColor : statusTheme?.position.backgroundColor;
     const textColor = isModifier ? statusTheme?.position.modifier.textColor : statusTheme?.position.textColor;
 
     return (
@@ -83,7 +83,7 @@ export const OrderListPositionItem = React.memo(({ themeName, currency, language
             <View style={{ width: "100%" }}>
                 {
                     position.children.filter(p => !!p.product).map(p =>
-                        <OrderListPositionItem key={p.id} themeName={themeName} position={p} language={language} currency={currency}
+                        <OrderListPositionItem key={p.id} theme={theme} position={p} language={language} currency={currency}
                             onSelect={onSelectHandler} isModifier={true} />
                     )
                 }

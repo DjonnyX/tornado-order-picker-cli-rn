@@ -1,15 +1,16 @@
-import React, { Dispatch, useCallback, useState } from "react";
+import React, { Dispatch, useCallback, useEffect, useState } from "react";
 import { StackScreenProps } from "@react-navigation/stack";
 import { View } from "react-native";
 import { connect } from "react-redux";
 import {
     ICompiledLanguage, ICompiledOrder, ICompiledOrderPosition, ICurrency,
+    IOrderPickerTheme,
+    IOrderPickerThemeColors,
     OrderPositionStatuses, OrderStatuses
 } from "@djonnyx/tornado-types";
 import { IAppState } from "../../store/state";
 import { MainNavigationScreenTypes } from "../navigation";
 import { CapabilitiesSelectors, CombinedDataSelectors, OrdersSelectors } from "../../store/selectors";
-import { theme } from "../../theme";
 import { OrderListContainer } from "../simple/order-list/OrderList";
 import { NotificationActions, OrdersActions } from "../../store/actions";
 import { orderApiService } from "../../services";
@@ -20,7 +21,7 @@ import { IStatusItem, IStatusPickerData, StatusPicker } from "../simple/status-s
 
 interface IOrdersSelfProps {
     // store props
-    _theme: string;
+    _theme: IOrderPickerTheme;
     _orders: Array<ICompiledOrder>;
     _currency: ICurrency;
     _language: ICompiledLanguage;
@@ -71,63 +72,69 @@ const getNextOrderPositionStatus = (status: OrderPositionStatuses): OrderPositio
     return status;
 }
 
-const ORDER_STATUS_LIST: Array<IStatusItem> = [
+const ORDER_STATUS_LIST = (theme: IOrderPickerThemeColors): Array<IStatusItem> => ([
     {
         name: "Новый",
         value: OrderStatuses.NEW,
-        color: theme.themes[theme.name].orders.items.new.background,
-        textColor: theme.themes[theme.name].orders.items.new.textColor,
+        color: theme.orders.items.new.backgroundColor,
+        textColor: theme.orders.items.new.textColor,
     },
     {
         name: "Сборка",
         value: OrderStatuses.IN_PROCESS,
-        color: theme.themes[theme.name].orders.items.process.background,
-        textColor: theme.themes[theme.name].orders.items.process.textColor,
+        color: theme.orders.items.process.backgroundColor,
+        textColor: theme.orders.items.process.textColor,
     },
     {
         name: "Готовый",
         value: OrderStatuses.COMPLETE,
-        color: theme.themes[theme.name].orders.items.complete.background,
-        textColor: theme.themes[theme.name].orders.items.complete.textColor,
+        color: theme.orders.items.complete.backgroundColor,
+        textColor: theme.orders.items.complete.textColor,
     },
     {
         name: "Отменен",
         value: OrderStatuses.CANCELED,
-        color: theme.themes[theme.name].orders.items.canceled.background,
-        textColor: theme.themes[theme.name].orders.items.canceled.textColor,
+        color: theme.orders.items.canceled.backgroundColor,
+        textColor: theme.orders.items.canceled.textColor,
     }
-];
+]);
 
-const ORDER_POSITION_STATUS_LIST: Array<IStatusItem> = [
+const ORDER_POSITION_STATUS_LIST = (theme: IOrderPickerThemeColors): Array<IStatusItem> => ([
     {
         name: "Новый",
         value: OrderPositionStatuses.NEW,
-        color: theme.themes[theme.name].orders.items.new.position.background,
-        textColor: theme.themes[theme.name].orders.items.new.position.textColor,
+        color: theme.orders.items.new.position.backgroundColor,
+        textColor: theme.orders.items.new.position.textColor,
     },
     {
         name: "Сборка",
         value: OrderPositionStatuses.IN_PROCESS,
-        color: theme.themes[theme.name].orders.items.process.position.background,
-        textColor: theme.themes[theme.name].orders.items.process.position.textColor,
+        color: theme.orders.items.process.position.backgroundColor,
+        textColor: theme.orders.items.process.position.textColor,
     },
     {
         name: "Готовый",
         value: OrderPositionStatuses.COMPLETE,
-        color: theme.themes[theme.name].orders.items.complete.position.background,
-        textColor: theme.themes[theme.name].orders.items.complete.position.textColor,
+        color: theme.orders.items.complete.position.backgroundColor,
+        textColor: theme.orders.items.complete.position.textColor,
     },
     {
         name: "Отменен",
         value: OrderPositionStatuses.CANCELED,
-        color: theme.themes[theme.name].orders.items.canceled.position.background,
-        textColor: theme.themes[theme.name].orders.items.canceled.position.textColor,
+        color: theme.orders.items.canceled.position.backgroundColor,
+        textColor: theme.orders.items.canceled.position.textColor,
     }
-];
+]);
 
 const OrdersScreenContainer = React.memo(({ _theme, _orders, _language, _currency, navigation,
     _onSetOrdersVersion, _onSetOrderStatus, _onSetOrderPositionStatus, _alertOpen }: IOrdersProps) => {
     const [selectStatusData, setSelectStatusData] = useState<IStatusPickerData | undefined>(undefined);
+    const [theme, setTheme] = useState<IOrderPickerThemeColors>(_theme?.themes?.[_theme?.name]);
+
+    useEffect(() => {
+        setTheme(_theme?.themes?.[_theme?.name]);
+        console.warn(_theme)
+    }, [_theme]);
 
     const onCloseSelectStatusHandler = useCallback(() => {
         setSelectStatusData(undefined);
@@ -186,7 +193,7 @@ const OrdersScreenContainer = React.memo(({ _theme, _orders, _language, _currenc
 
     const onSelectOrderHandler = useCallback((order: ICompiledOrder, actionHandler: IActionHandler, isAnyStatus: boolean) => {
         if (isAnyStatus) {
-            const statuses = ORDER_STATUS_LIST.filter(s => s.value > getMinimumPositionsStatus(order.positions));
+            const statuses = ORDER_STATUS_LIST(theme).filter(s => s.value > getMinimumPositionsStatus(order.positions));
 
             if (statuses.length > 0) {
                 setSelectStatusData({
@@ -200,7 +207,7 @@ const OrdersScreenContainer = React.memo(({ _theme, _orders, _language, _currenc
             const status = getNextOrderStatus(order.status);
             setOrderStatus(order, status, actionHandler);
         }
-    }, []);
+    }, [theme]);
 
     const setOrderPositionStatus = useCallback((order: ICompiledOrder, position: ICompiledOrderPosition, actionHandler: IActionHandler,
         status: OrderPositionStatuses) => {
@@ -253,21 +260,22 @@ const OrdersScreenContainer = React.memo(({ _theme, _orders, _language, _currenc
                 order,
                 actionHandler,
                 position,
-                statuses: ORDER_POSITION_STATUS_LIST.filter(s => s.value !== position.status),
+                statuses: ORDER_POSITION_STATUS_LIST(theme).filter(s => s.value !== position.status),
             });
         } else {
             const status = getNextOrderPositionStatus(position.status);
             setOrderPositionStatus(order, position, actionHandler, status);
         }
-    }, []);
+    }, [theme]);
 
     return (
+        !!theme &&
         <View style={{
             width: "100%", height: "100%",
-            backgroundColor: theme.themes[theme.name].orders.background
+            backgroundColor: theme.orders.backgroundColor
         }}>
-            <StatusPicker themeName={_theme} data={selectStatusData} onSelect={onSelectStatusHandler} onClose={onCloseSelectStatusHandler} />
-            <OrderListContainer themeName={_theme} orders={_orders} currency={_currency} language={_language}
+            <StatusPicker theme={theme} data={selectStatusData} onSelect={onSelectStatusHandler} onClose={onCloseSelectStatusHandler} />
+            <OrderListContainer theme={theme} orders={_orders} currency={_currency} language={_language}
                 onSelectOrder={onSelectOrderHandler} onSelectOrderPosition={onSelectOrderPositionHandler} />
         </View >
     );

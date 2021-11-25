@@ -3,7 +3,7 @@ import { TCapabilitiesActions, CapabilitiesActionTypes } from "../actions";
 import { ICapabilitiesState } from "../state";
 
 const initialState: ICapabilitiesState = {
-    theme: undefined,
+    themes: undefined,
     language: undefined,
     orderType: undefined,
     currentScreen: undefined,
@@ -14,11 +14,15 @@ const capabilitiesReducer: Reducer<ICapabilitiesState, TCapabilitiesActions> = (
     action
 ) => {
     switch (action.type) {
-        case CapabilitiesActionTypes.SET_THEME:
-            return {
-                ...state,
-                theme: action.theme,
-            };
+        case CapabilitiesActionTypes.SET_THEMES:
+            if (action.themes !== state.themes) {
+                return {
+                    ...state,
+                    themes: action.themes,
+                };
+            }
+
+            return state;
         case CapabilitiesActionTypes.SET_LANGUAGE:
             return {
                 ...state,

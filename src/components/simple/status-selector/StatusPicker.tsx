@@ -1,8 +1,8 @@
-import { ICompiledOrder, ICompiledOrderPosition, OrderPositionStatuses, OrderStatuses } from "@djonnyx/tornado-types";
+import { ICompiledOrder, ICompiledOrderPosition, IOrderPickerThemeColors, OrderPositionStatuses, OrderStatuses } from "@djonnyx/tornado-types";
 import React, { useCallback } from "react";
 import { Text, TouchableHighlight, View } from "react-native";
 import { IActionHandler } from "../../../interfaces";
-import { Icons, theme } from "../../../theme";
+import { Icons } from "../../../theme";
 import { ModalRollTop } from "../ModalRollTop";
 
 export interface IStatusItem {
@@ -20,14 +20,14 @@ export interface IStatusPickerData {
 }
 
 interface IStatusPickerProps {
-    themeName: string;
+    theme: IOrderPickerThemeColors;
     data: IStatusPickerData | undefined;
     onSelect: (order: ICompiledOrder, position: ICompiledOrderPosition | undefined, actionHandler: IActionHandler,
         status: OrderStatuses | OrderPositionStatuses) => void;
     onClose: () => void;
 }
 
-export const StatusPicker = React.memo(({ themeName, data, onSelect, onClose }: IStatusPickerProps) => {
+export const StatusPicker = React.memo(({ theme, data, onSelect, onClose }: IStatusPickerProps) => {
     const onSelectHandler = useCallback((item: IStatusItem) => {
         if (!!data?.order) {
             onSelect(data?.order, data?.position, data?.actionHandler, item.value);
@@ -35,9 +35,9 @@ export const StatusPicker = React.memo(({ themeName, data, onSelect, onClose }: 
     }, [data]);
 
     return (
-        <ModalRollTop visible={!!data?.statuses}>
+        <ModalRollTop theme={theme} visible={!!data?.statuses}>
             <View style={{ width: "100%", alignItems: "flex-end" }}>
-                <CloseButton themeName={themeName} onPress={onClose}></CloseButton>
+                <CloseButton theme={theme} onPress={onClose}></CloseButton>
             </View>
             <View style={{ flex: 1, width: "100%", alignItems: "center", justifyContent: "center" }}>
                 {
@@ -67,17 +67,17 @@ export const StatusPicker = React.memo(({ themeName, data, onSelect, onClose }: 
 });
 
 interface ICloseButtonProps {
-    themeName: string;
+    theme: IOrderPickerThemeColors;
     onPress: () => void;
 }
 
-const CloseButton = ({ themeName, onPress }: ICloseButtonProps) => {
+const CloseButton = ({ theme, onPress }: ICloseButtonProps) => {
     return (
         <TouchableHighlight onPress={onPress}>
             <View
                 style={{ borderRadius: 16, margin: 22 }}
             >
-                <Icons name="Close" fill={theme.themes[theme.name].statusPicker.backButton.iconColor} width={34} height={34} ></Icons>
+                <Icons name="Close" fill={theme.statusPicker.backButton.iconColor} width={34} height={34} ></Icons>
             </View>
         </TouchableHighlight>
     )

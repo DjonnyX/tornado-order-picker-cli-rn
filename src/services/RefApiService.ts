@@ -3,13 +3,14 @@ import { catchError, map, retry, retryWhen, switchMap } from "rxjs/operators";
 import { config } from "../Config";
 import {
     IRef, INode, ISelector, IProduct, ITag, IAsset, ILanguage, ITranslation, IBusinessPeriod, IOrderType,
-    ICurrency, IAd, IStore, ITerminal, TerminalTypes, ILicense
+    ICurrency, IAd, IStore, ITerminal, TerminalTypes, ILicense, IOrderPickerTheme, IAppTheme, ISystemTag
 } from "@djonnyx/tornado-types";
 import { genericRetryStrategy } from "../utils/request";
 import { Log } from "./Log";
 import { AuthStore } from "../native";
 import { extractError } from "../utils/error";
 import { ApiErrorCodes } from "./ApiErrorCodes";
+import { IDataService } from "@djonnyx/tornado-refs-processor";
 
 interface IRequestOptions {
     useAttempts?: boolean;
@@ -93,7 +94,7 @@ const parseResponse = (res: Response) => {
     );
 }
 
-class RefApiService {
+class RefApiService implements IDataService<IOrderPickerTheme> {
     private _serial: string | undefined;
 
     public set serial(v: string) {
@@ -201,7 +202,7 @@ class RefApiService {
             from(this.getAccessToken()).pipe(
                 switchMap(token => {
                     return from(
-                        fetch(`${config.refServer.address}/api/v1/refs`,
+                        fetch(`${config.refServer.address}/api/v1/refs?theme=${TerminalTypes.ORDER_PICKER}`,
                             {
                                 method: "GET",
                                 headers: {
@@ -507,7 +508,7 @@ class RefApiService {
             from(this.getAccessToken()).pipe(
                 switchMap(token => {
                     return from(
-                        fetch(`${config.refServer.address}/api/v1/terminals`,
+                        fetch(`${config.refServer.address}/api/v1/terminals?type.equals=${TerminalTypes.ORDER_PICKER}`,
                             {
                                 method: "GET",
                                 headers: {
@@ -522,6 +523,41 @@ class RefApiService {
             switchMap(res => parseResponse(res)),
             map(resData => resData.data),
         );
+    }
+
+    getThemes(): Observable<Array<IAppTheme<IOrderPickerTheme>>> {
+        Log.i("RefApiService", "getThemes");
+        let response: Observable<Array<IAppTheme<IOrderPickerTheme>>>;
+        try {
+            response = request(
+                from(this.getAccessToken()).pipe(
+                    switchMap(token => {
+                        return from(
+                            fetch(`${config.refServer.address}/api/v1/app-themes?type.equals=${TerminalTypes.ORDER_PICKER}`,
+                                {
+                                    method: "GET",
+                                    headers: {
+                                        "x-access-token": token,
+                                    },
+                                }
+                            )
+                        );
+                    })
+                ),
+            ).pipe(
+                switchMap(res => parseResponse(res)),
+                map(resData => {
+                    return resData.data;
+                }),
+            );
+        } catch (err) {
+            return throwError(Error("Something went wrong"));
+        }
+        return response;
+    }
+
+    getSystemTags(): Observable<ISystemTag[]> {
+        throw new Error("Method not implemented.");
     }
 }
 

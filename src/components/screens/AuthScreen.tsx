@@ -5,21 +5,20 @@ import { Picker } from '@react-native-community/picker';
 import { View, TextInput, Text } from "react-native";
 import { connect } from "react-redux";
 import { CommonActions } from "@react-navigation/native";
-import { take, takeUntil } from "rxjs/operators";
-import { IStore } from "@djonnyx/tornado-types";
+import { switchMap, take, takeUntil } from "rxjs/operators";
+import { IOrderPickerTheme, IOrderPickerThemeColors, IStore } from "@djonnyx/tornado-types";
 import { MainNavigationScreenTypes } from "../navigation";
 import { IAppState } from "../../store/state";
-import { CapabilitiesSelectors, CombinedDataSelectors, SystemSelectors } from "../../store/selectors";
-import { theme } from "../../theme";
+import { CombinedDataSelectors, CapabilitiesSelectors, SystemSelectors } from "../../store/selectors";
 import { NotificationActions } from "../../store/actions";
 import { orderApiService, refApiService } from "../../services";
 import { SystemActions } from "../../store/actions/SystemAction";
-import { SimpleButton } from "../simple";
+import { SimpleSystemButton } from "../simple";
 import { IAlertState } from "../../interfaces";
-import { Subject } from "rxjs";
+import { interval, Subject } from "rxjs";
 
 interface IFormSNProps {
-    themeName: string;
+    theme: IOrderPickerThemeColors;
     value: string;
     isProgress: boolean;
     onComplete: (value: string) => void;
@@ -29,7 +28,7 @@ const SN_STATE = {
     value: "",
 }
 
-const FormSN = React.memo(({ themeName, value, isProgress, onComplete }: IFormSNProps) => {
+const FormSN = React.memo(({ theme, value, isProgress, onComplete }: IFormSNProps) => {
     const [serialNumber, setSerialNumber] = useState<string>(value);
 
     useEffect(() => {
@@ -50,39 +49,39 @@ const FormSN = React.memo(({ themeName, value, isProgress, onComplete }: IFormSN
     const isValid = serialNumber !== undefined && serialNumber.length > 0;
     return <>
         <View style={{ marginBottom: 12 }}>
-            <TextInput keyboardType="number-pad" placeholderTextColor={theme.themes[theme.name].service.textInput.placeholderColor}
-                selectionColor={theme.themes[theme.name].service.textInput.selectionColor}
+            <TextInput keyboardType="number-pad" placeholderTextColor={theme.service.textInput.placeholderColor}
+                selectionColor={theme.service.textInput.selectionColor}
                 underlineColorAndroid={isValid
-                    ? theme.themes[theme.name].service.textInput.underlineColor
-                    : theme.themes[theme.name].service.textInput.underlineWrongColor
+                    ? theme.service.textInput.underlineColor
+                    : theme.service.textInput.underlineWrongColor
                 }
                 style={{
-                    fontSize: 16,
-                    textAlign: "center", color: theme.themes[theme.name].service.textInput.textColor,
+                    fontSize: theme.service.textInput.textFontSize,
+                    textAlign: "center", color: theme.service.textInput.textColor,
                     minWidth: 140, marginBottom: 12
                 }} editable={!isProgress}
                 placeholder="Серийный ключ" onChangeText={changeSerialNumHandler} value={serialNumber} />
             {
                 !isValid &&
-                <Text style={{ fontSize: 12, color: theme.themes[theme.name].service.errorLabel.textColor }}>
+                <Text style={{ fontSize: theme.service.errorLabel.textFontSize, color: theme.service.errorLabel.textColor }}>
                     * Обязательное поле
-        </Text>
+                </Text>
             }
         </View>
-        <SimpleButton style={{ backgroundColor: theme.themes[theme.name].service.button.backgroundColor, minWidth: 180 }}
-            textStyle={{ fontSize: 16, color: theme.themes[theme.name].service.button.textColor }}
+        <SimpleSystemButton style={{ backgroundColor: theme.service.button.backgroundColor, minWidth: 180 }}
+            textStyle={{ fontSize: theme.service.button.textFontSize, color: theme.service.button.textColor }}
             onPress={() => { completeHandler() }} title="Зарегистрировать" disabled={isProgress || !isValid} />
     </>
 });
 
 interface IFormTParams {
-    themeName: string;
+    theme: IOrderPickerThemeColors;
     stores: Array<IStore>;
     isProgress: boolean;
     onComplete: (terminalName: string, storeId: string) => void;
 }
 
-const FormTParams = React.memo(({ themeName, stores, isProgress, onComplete }: IFormTParams) => {
+const FormTParams = React.memo(({ theme, stores, isProgress, onComplete }: IFormTParams) => {
     const [terminalName, setTerminalName] = useState<string>("");
     const [storeId, setStoreId] = useState<string>("");
 
@@ -91,7 +90,6 @@ const FormTParams = React.memo(({ themeName, stores, isProgress, onComplete }: I
     };
 
     const completeHandler = () => {
-        console.warn(terminalName, storeId)
         onComplete(terminalName, storeId);
     }
 
@@ -100,23 +98,23 @@ const FormTParams = React.memo(({ themeName, stores, isProgress, onComplete }: I
     const isStep2Valid = isTerminalNameValid && isStoreIdValid;
     return <>
         <View style={{ marginBottom: 12 }}>
-            <TextInput keyboardType="default" placeholderTextColor={theme.themes[theme.name].service.textInput.placeholderColor}
-                selectionColor={theme.themes[theme.name].service.textInput.selectionColor}
+            <TextInput keyboardType="default" placeholderTextColor={theme.service.textInput.placeholderColor}
+                selectionColor={theme.service.textInput.selectionColor}
                 underlineColorAndroid={isTerminalNameValid
-                    ? theme.themes[theme.name].service.textInput.underlineColor
-                    : theme.themes[theme.name].service.textInput.underlineWrongColor
+                    ? theme.service.textInput.underlineColor
+                    : theme.service.textInput.underlineWrongColor
                 }
                 style={{
-                    fontSize: 16,
-                    textAlign: "center", color: theme.themes[theme.name].service.textInput.textColor,
+                    fontSize: theme.service.textInput.textFontSize,
+                    textAlign: "center", color: theme.service.textInput.textColor,
                     minWidth: 180
                 }} editable={!isProgress}
                 placeholder="Название терминала" onChangeText={changeTerminalNameHandler} value={terminalName} />
             {
                 !isTerminalNameValid &&
-                <Text style={{ fontSize: 12, color: theme.themes[theme.name].service.errorLabel.textColor }}>
+                <Text style={{ fontSize: theme.service.errorLabel.textFontSize, color: theme.service.errorLabel.textColor }}>
                     * Обязательное поле
-        </Text>
+                </Text>
             }
         </View>
         <View style={{ marginBottom: 12 }}>
@@ -124,10 +122,11 @@ const FormTParams = React.memo(({ themeName, stores, isProgress, onComplete }: I
                 mode="dropdown"
                 selectedValue={storeId}
                 style={{
+                    fontSize: theme.service.picker.textFontSize,
                     textAlign: "center", minWidth: 180,
                     color: isStoreIdValid
-                        ? theme.themes[theme.name].service.picker.textColor
-                        : theme.themes[theme.name].service.textInput.placeholderColor,
+                        ? theme.service.picker.textColor
+                        : theme.service.textInput.placeholderColor,
                 }}
                 onValueChange={(itemValue, itemIndex) => {
                     if (itemIndex > 0) {
@@ -135,7 +134,7 @@ const FormTParams = React.memo(({ themeName, stores, isProgress, onComplete }: I
                     }
                 }}
             >
-                <Picker.Item key="placeholder" color={theme.themes[theme.name].service.picker.placeholderColor} value=""
+                <Picker.Item key="placeholder" color={theme.service.picker.placeholderColor} value=""
                     label='Выберите магазин' />
                 {
                     stores.map(store => <Picker.Item key={store.id} color="black" label={store.name} value={store.id || ""} />)
@@ -144,13 +143,13 @@ const FormTParams = React.memo(({ themeName, stores, isProgress, onComplete }: I
             </Picker>
             {
                 !isStoreIdValid &&
-                <Text style={{ fontSize: 12, color: theme.themes[theme.name].service.errorLabel.textColor }}>
+                <Text style={{ fontSize: theme.service.errorLabel.textFontSize, color: theme.service.errorLabel.textColor }}>
                     * Обязательное поле
-            </Text>
+                </Text>
             }
         </View>
-        <SimpleButton style={{ backgroundColor: theme.themes[theme.name].service.button.backgroundColor, minWidth: 180 }}
-            textStyle={{ fontSize: 16, color: theme.themes[theme.name].service.button.textColor }}
+        <SimpleSystemButton style={{ backgroundColor: theme.service.button.backgroundColor, minWidth: 180 }}
+            textStyle={{ fontSize: theme.service.button.textFontSize, color: theme.service.button.textColor }}
             onPress={completeHandler} title="Сохранить" disabled={isProgress || !isStep2Valid} />
     </>
 })
@@ -162,7 +161,7 @@ interface IAuthSelfProps {
     _onChangeTerminalId: (terminalId: string) => void;
     _onChangeStoreId: (storeId: string) => void;
     _alertOpen: (alert: IAlertState) => void;
-    _theme: string;
+    _theme: IOrderPickerTheme;
     _progress: number;
     _serialNumber: string;
     _setupStep: number;
@@ -249,6 +248,26 @@ const AuthScreenContainer = React.memo(({ _theme, _serialNumber, _setupStep, _te
     useEffect(() => {
         const unsubscribe$ = new Subject<void>();
 
+        const getStoresInterval = () => {
+            interval(5000).pipe(
+                take(1),
+                takeUntil(unsubscribe$),
+                switchMap(_ => {
+                    return refApiService.getStores({
+                        serial: _serialNumber,
+                    }).pipe(
+                        take(1),
+                        takeUntil(unsubscribe$),
+                    )
+                })
+            ).subscribe(
+                v => {
+                    setStores(v);
+                    getStoresInterval();
+                }
+            );
+        };
+
         if (_setupStep === 1) {
             refApiService.getStores({
                 serial: _serialNumber,
@@ -258,6 +277,7 @@ const AuthScreenContainer = React.memo(({ _theme, _serialNumber, _setupStep, _te
             ).subscribe(
                 v => {
                     setStores(v);
+                    getStoresInterval();
                 },
                 err => {
                     _alertOpen({
@@ -365,23 +385,25 @@ const AuthScreenContainer = React.memo(({ _theme, _serialNumber, _setupStep, _te
         }
     }, [_storeId, _terminalId]);
 
+    const theme = _theme?.themes?.[_theme?.name];
+
     return (
         <>
             {
-                !!_theme &&
-                <View style={{ flex: 1, justifyContent: "center", alignItems: "center", backgroundColor: theme.themes[theme.name].loading.background }}>
+                !!theme &&
+                <View style={{ flex: 1, justifyContent: "center", alignItems: "center", backgroundColor: theme.loading.backgroundColor }}>
                     {
                         !isLicenseValid &&
                         <>
                             {
                                 // Enter serial number
                                 _setupStep === 0 &&
-                                <FormSN themeName={_theme} value={_serialNumber} isProgress={showProgressBar} onComplete={authHandler} />
+                                <FormSN theme={theme} value={_serialNumber} isProgress={showProgressBar} onComplete={authHandler} />
                             }
                             {
                                 // Enter terminal name and store
                                 _setupStep === 1 &&
-                                <FormTParams themeName={_theme} stores={stores} isProgress={showProgressBar} onComplete={saveParamsHandler} />
+                                <FormTParams theme={theme} stores={stores} isProgress={showProgressBar} onComplete={saveParamsHandler} />
                             }
                         </>
                     }
@@ -391,7 +413,7 @@ const AuthScreenContainer = React.memo(({ _theme, _serialNumber, _setupStep, _te
                             style={{ width: "100%", marginTop: 12, maxWidth: 140, marginLeft: "10%", marginRight: "10%" }}
                             styleAttr="Horizontal"
                             indeterminate={true}
-                            color={theme.themes[theme.name].loading.progressBar.trackColor}></ProgressBar>
+                            color={theme.loading.progressBar.trackColor}></ProgressBar>
                     }
                 </View>
             }

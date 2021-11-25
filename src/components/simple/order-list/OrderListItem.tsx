@@ -1,13 +1,13 @@
 import React, { useCallback, useState } from "react";
 import { View, Text, TouchableOpacity, GestureResponderEvent } from "react-native";
 import { ProgressBar } from "@react-native-community/progress-bar-android";
-import { ICurrency, ICompiledLanguage, ICompiledOrder, ICompiledOrderPosition } from "@djonnyx/tornado-types";
+import { ICurrency, ICompiledLanguage, ICompiledOrder, ICompiledOrderPosition, IOrderPickerThemeColors } from "@djonnyx/tornado-types";
 import { OrderListPositionItem } from "./OrderListPositionItem";
 import { IActionHandler } from "../../../interfaces";
 import { getOrderStatusTheme } from "../../../utils/statusTheme";
 
 interface IOrderListItemProps {
-    themeName: string;
+    theme: IOrderPickerThemeColors;
     order: ICompiledOrder;
     currency: ICurrency;
     language: ICompiledLanguage;
@@ -15,7 +15,7 @@ interface IOrderListItemProps {
     onSelectOrderPosition: (order: ICompiledOrder, postion: ICompiledOrderPosition, actionHandler: IActionHandler, isAnyStatus: boolean) => void;
 }
 
-export const OrderListItem = React.memo(({ themeName, currency, language, order,
+export const OrderListItem = React.memo(({ theme, currency, language, order,
     onSelectOrder, onSelectOrderPosition }: IOrderListItemProps) => {
     const [isLoading, setIsLoading] = useState<boolean>(false);
 
@@ -40,7 +40,7 @@ export const OrderListItem = React.memo(({ themeName, currency, language, order,
         onSelectOrderPosition(order, position, actionHandler, isAnyStatus);
     }, [order]);
 
-    const statusTheme = getOrderStatusTheme(order.status);
+    const statusTheme = getOrderStatusTheme(theme, order.status);
 
     return (
         <View style={{ position: "relative", width: "100%", flex: 1 }}>
@@ -53,7 +53,7 @@ export const OrderListItem = React.memo(({ themeName, currency, language, order,
                     <ProgressBar indeterminate={true} styleAttr="Small" color={"white"}></ProgressBar>
                 </View>
             }
-            <View style={{ flex: 1, backgroundColor: statusTheme?.background, borderRadius: 16 }}>
+            <View style={{ flex: 1, backgroundColor: statusTheme?.backgroundColor, borderRadius: 16 }}>
                 <TouchableOpacity style={{ alignItems: "center", flex: 1, padding: 16 }} onPress={onPressHandler}
                     onLongPress={onLongPressHandler}>
                     <Text textBreakStrategy="simple" numberOfLines={2} ellipsizeMode="tail" style={{
@@ -70,7 +70,7 @@ export const OrderListItem = React.memo(({ themeName, currency, language, order,
                     <View style={{ width: "100%" }}>
                         {
                             !!order?.positions && order.positions.filter(p => !!p.product).map(p =>
-                                <OrderListPositionItem key={p.id} themeName={themeName} position={p} language={language} currency={currency}
+                                <OrderListPositionItem key={p.id} theme={theme} position={p} language={language} currency={currency}
                                     onSelect={onPositionSelectHandler} />
                             )
                         }

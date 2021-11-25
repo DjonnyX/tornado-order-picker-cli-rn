@@ -1,18 +1,19 @@
+import { IOrderPickerThemeColors } from "@djonnyx/tornado-types";
 import React, { useCallback, useState } from "react";
 import { View, Modal, Animated, Easing, Dimensions } from "react-native";
-import { theme } from "../../theme";
 
 interface INotificationModalProps {
+    theme: IOrderPickerThemeColors;
     children: JSX.Element;
     visible: boolean;
 }
 
-export const NotificationModal = React.memo(({ children, visible }: INotificationModalProps) => {
+export const NotificationModal = React.memo(({ theme, children, visible }: INotificationModalProps) => {
     const [position, _setPosition] = useState(new Animated.Value(0));
     let positionAnimation: Animated.CompositeAnimation;
 
     // анимация скрытия
-    const sideFadeOut = useCallback(() => {
+    const sideMenuFadeOut = useCallback(() => {
         if (positionAnimation) {
             positionAnimation.stop();
         }
@@ -27,7 +28,7 @@ export const NotificationModal = React.memo(({ children, visible }: INotificatio
     }, []);
 
     // анимация отображения
-    const sideFadeIn = useCallback(() => {
+    const sideMenuFadeIn = useCallback(() => {
         if (positionAnimation) {
             positionAnimation.stop();
         }
@@ -42,9 +43,9 @@ export const NotificationModal = React.memo(({ children, visible }: INotificatio
     }, []);
 
     if (visible) {
-        sideFadeIn();
+        sideMenuFadeIn();
     } else {
-        sideFadeOut();
+        sideMenuFadeOut();
     }
 
     return (
@@ -64,8 +65,8 @@ export const NotificationModal = React.memo(({ children, visible }: INotificatio
             <View style={{
                 margin: 40,
                 borderWidth: 1,
-                borderColor: theme.themes[theme.name].common.modalNotification.window.borderColor,
-                backgroundColor: theme.themes[theme.name].common.modalNotification.window.background,
+                borderColor: theme.common.modalNotification.window.borderColor,
+                backgroundColor: theme.common.modalNotification.window.backgroundColor,
                 borderRadius: 8,
                 padding: 44,
                 alignItems: "center",

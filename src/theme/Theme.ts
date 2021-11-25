@@ -1,43 +1,63 @@
-import { IOrderPickerTheme } from "@djonnyx/tornado-types";
+import { IAppTheme, IOrderPickerTheme, IOrderPickerThemeColors } from "@djonnyx/tornado-types";
 
-export const theme: IOrderPickerTheme = {
+export const THEMES_FILE_NAME = "themes.json";
+
+export const compileThemes = (themes: Array<IAppTheme<IOrderPickerThemeColors>>, name: string): IOrderPickerTheme => {
+    const result: IOrderPickerTheme = {
+        name,
+        themes: {},
+    };
+
+    themes.forEach(t => {
+        result.themes[t.id!] = t.data;
+    });
+
+    return result;
+}
+
+export const embededTheme: IOrderPickerTheme = {
     name: "light",
     themes: {
         ["light"]: {
             common: {
                 modal: {
-                    background: "#e3e3e3",
+                    backgroundColor: "#e3e3e3",
                     window: {
-                        background: "transparent",
+                        backgroundColor: "transparent",
                     }
                 },
                 modalTransparent: {
-                    background: "rgba(0,0,0,0.5)",
+                    backgroundColor: "rgba(0,0,0,0.5)",
                     window: {
-                        background: "rgba(0,0,0,0.83)",
+                        backgroundColor: "#fff",
                         borderColor: "rgba(0,0,0,0.1)"
                     }
                 },
                 modalNotification: {
-                    background: "none",
+                    backgroundColor: "none",
                     window: {
-                        background: "rgba(0,0,0,0.75)",
+                        backgroundColor: "rgba(0,0,0,0.75)",
                         borderColor: "rgba(0,0,0,0.1)",
                     }
                 },
                 notificationAlert: {
                     textColor: "rgba(255,255,255,0.75)",
+                    textFontSize: 20,
                 },
                 alert: {
                     titleColor: "rgba(0,0,0,0.75)",
+                    titleFontSize: 20,
                     messageColor: "rgba(0,0,0,0.75)",
+                    messageFontSize: 18,
                     buttonColor: "#30a02a",
                     buttonTextColor: "rgba(255,255,255,1)",
+                    buttonTextFontSize: 14,
                 }
             },
             service: {
                 errorLabel: {
                     textColor: "red",
+                    textFontSize: 12,
                 },
                 textInput: {
                     placeholderColor: "rgba(0,0,0,0.5)",
@@ -45,22 +65,26 @@ export const theme: IOrderPickerTheme = {
                     underlineColor: "#30a02a",
                     underlineWrongColor: "red",
                     textColor: "rgba(0,0,0,1)",
+                    textFontSize: 16,
                 },
                 picker: {
                     textColor: "rgba(0,0,0,1)",
+                    textFontSize: 16,
                     placeholderColor: "gray",
                 },
                 button: {
                     backgroundColor: "#30a02a",
                     textColor: "rgba(255,255,255,1)",
+                    textFontSize: 16,
                 }
             },
             loading: {
-                background: "#fff",
+                backgroundColor: "#fff",
                 progressBar: {
                     thumbColor: "rgba(0,0,0,0.85)",
                     trackColor: "rgba(0,0,0,0.75)",
                     textColor: "rgba(0,0,0,0.75)",
+                    textFontSize: 13,
                 }
             },
             statusPicker: {
@@ -69,53 +93,53 @@ export const theme: IOrderPickerTheme = {
                 }
             },
             orders: {
-                background: "#fff",
+                backgroundColor: "#fff",
 
                 items: {
                     new: {
-                        background: "#5d5d5d",
+                        backgroundColor: "#5d5d5d",
                         textColor: "#fff",
                         position: {
-                            background: "#717171",
+                            backgroundColor: "#717171",
                             textColor: "#fff",
                             modifier: {
-                                background: "#717171",
+                                backgroundColor: "#717171",
                                 textColor: "#fff",
                             }
                         }
                     },
                     process: {
-                        background: "#005d8d",
+                        backgroundColor: "#005d8d",
                         textColor: "#fff",
                         position: {
-                            background: "#007ab9",
+                            backgroundColor: "#007ab9",
                             textColor: "#fff",
                             modifier: {
-                                background: "#007ab9",
+                                backgroundColor: "#007ab9",
                                 textColor: "#fff",
                             }
                         }
                     },
                     complete: {
-                        background: "#3f7f00",
+                        backgroundColor: "#3f7f00",
                         textColor: "#fff",
                         position: {
-                            background: "#4c9900",
+                            backgroundColor: "#4c9900",
                             textColor: "#fff",
                             modifier: {
-                                background: "#4c9900",
+                                backgroundColor: "#4c9900",
                                 textColor: "#fff",
                             }
                         }
                     },
                     canceled: {
-                        background: "#ce2424",
+                        backgroundColor: "#ce2424",
                         textColor: "#fff",
                         position: {
-                            background: "#e42e2e",
+                            backgroundColor: "#e42e2e",
                             textColor: "#fff",
                             modifier: {
-                                background: "#e42e2e",
+                                backgroundColor: "#e42e2e",
                                 textColor: "#fff",
                             }
                         }
@@ -126,38 +150,43 @@ export const theme: IOrderPickerTheme = {
         ["dark"]: {
             common: {
                 modal: {
-                    background: "#000",
+                    backgroundColor: "#000",
                     window: {
-                        background: "#000",
+                        backgroundColor: "#000",
                     }
                 },
                 modalTransparent: {
-                    background: "rgba(255,255,255,0.25)",
+                    backgroundColor: "rgba(255,255,255,0.075)",
                     window: {
-                        background: "rgba(0,0,0,0.83)",
+                        backgroundColor: "#000",
                         borderColor: "rgba(255,255,255,0.1)"
                     }
                 },
                 modalNotification: {
-                    background: "none",
+                    backgroundColor: "none",
                     window: {
-                        background: "rgba(255,255,255,0.75)",
+                        backgroundColor: "rgba(255,255,255,0.75)",
                         borderColor: "rgba(255,255,255,0.1)",
                     }
                 },
                 notificationAlert: {
                     textColor: "rgba(0,0,0,0.75)",
+                    textFontSize: 20,
                 },
                 alert: {
                     titleColor: "rgba(255,255,255,0.75)",
+                    titleFontSize: 20,
                     messageColor: "rgba(255,255,255,0.75)",
+                    messageFontSize: 18,
                     buttonColor: "#30a02a",
                     buttonTextColor: "rgba(255,255,255,1)",
+                    buttonTextFontSize: 14,
                 }
             },
             service: {
                 errorLabel: {
                     textColor: "red",
+                    textFontSize: 12,
                 },
                 textInput: {
                     placeholderColor: "rgba(255,255,255,0.5)",
@@ -165,22 +194,26 @@ export const theme: IOrderPickerTheme = {
                     underlineColor: "#30a02a",
                     underlineWrongColor: "red",
                     textColor: "rgba(255,255,255,1)",
+                    textFontSize: 16,
                 },
                 picker: {
                     textColor: "rgba(255,255,255,1)",
+                    textFontSize: 16,
                     placeholderColor: "gray",
                 },
                 button: {
                     backgroundColor: "#30a02a",
                     textColor: "rgba(255,255,255,1)",
+                    textFontSize: 16,
                 }
             },
             loading: {
-                background: "#000",
+                backgroundColor: "#000",
                 progressBar: {
                     thumbColor: "rgba(255,255,255,0.85)",
                     trackColor: "rgba(255,255,255,0.75)",
                     textColor: "rgba(255,255,255,0.75)",
+                    textFontSize: 13,
                 }
             },
             statusPicker: {
@@ -189,53 +222,53 @@ export const theme: IOrderPickerTheme = {
                 }
             },
             orders: {
-                background: "#000",
+                backgroundColor: "#000",
 
                 items: {
                     new: {
-                        background: "#282828",
+                        backgroundColor: "#282828",
                         textColor: "#fff",
                         position: {
-                            background: "#333333",
+                            backgroundColor: "#333333",
                             textColor: "#fff",
                             modifier: {
-                                background: "#333333",
+                                backgroundColor: "#333333",
                                 textColor: "#fff",
                             }
                         }
                     },
                     process: {
-                        background: "#005d8d",
+                        backgroundColor: "#005d8d",
                         textColor: "#fff",
                         position: {
-                            background: "#007ab9",
+                            backgroundColor: "#007ab9",
                             textColor: "#fff",
                             modifier: {
-                                background: "#007ab9",
+                                backgroundColor: "#007ab9",
                                 textColor: "#fff",
                             }
                         }
                     },
                     complete: {
-                        background: "#3f7f00",
+                        backgroundColor: "#3f7f00",
                         textColor: "#fff",
                         position: {
-                            background: "#4c9900",
+                            backgroundColor: "#4c9900",
                             textColor: "#fff",
                             modifier: {
-                                background: "#4c9900",
+                                backgroundColor: "#4c9900",
                                 textColor: "#fff",
                             }
                         }
                     },
                     canceled: {
-                        background: "#7a0b0b",
+                        backgroundColor: "#7a0b0b",
                         textColor: "#fff",
                         position: {
-                            background: "#9e1010",
+                            backgroundColor: "#9e1010",
                             textColor: "#fff",
                             modifier: {
-                                background: "#9e1010",
+                                backgroundColor: "#9e1010",
                                 textColor: "#fff",
                             }
                         }
