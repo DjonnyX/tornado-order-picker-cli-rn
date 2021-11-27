@@ -3,7 +3,7 @@ import { catchError, map, retry, retryWhen, switchMap } from "rxjs/operators";
 import { config } from "../Config";
 import {
     IRef, INode, ISelector, IProduct, ITag, IAsset, ILanguage, ITranslation, IBusinessPeriod, IOrderType,
-    ICurrency, IAd, IStore, ITerminal, TerminalTypes, ILicense, IOrderPickerTheme, IAppTheme, ISystemTag
+    ICurrency, IAd, IStore, ITerminal, TerminalTypes, ILicense, IOrderPickerTheme, IAppTheme, ISystemTag, IWeightUnit
 } from "@djonnyx/tornado-types";
 import { genericRetryStrategy } from "../utils/request";
 import { Log } from "./Log";
@@ -557,6 +557,10 @@ class RefApiService implements IDataService<IOrderPickerTheme> {
     }
 
     getSystemTags(): Observable<ISystemTag[]> {
+        throw new Error("Method not implemented.");
+    }
+
+    getWeightUnits(): Observable<IWeightUnit[]> {
         throw new Error("Method not implemented.");
     }
 }

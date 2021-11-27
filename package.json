@@ -19,10 +19,10 @@
     "lint": "eslint . --ext .js,.jsx,.ts,.tsx"
   },
   "dependencies": {
-    "@djonnyx/tornado-assets-store": "^0.1.15",
+    "@djonnyx/tornado-assets-store": "^0.1.16",
     "@djonnyx/tornado-order-refs-processor": "^1.0.9",
-    "@djonnyx/tornado-refs-processor": "^1.2.33",
-    "@djonnyx/tornado-types": "^1.6.18",
+    "@djonnyx/tornado-refs-processor": "^1.2.35",
+    "@djonnyx/tornado-types": "^1.6.27",
     "@react-native-community/masked-view": "^0.1.11",
     "@react-native-community/picker": "^1.8.1",
     "@react-native-community/progress-bar-android": "^1.0.4",
